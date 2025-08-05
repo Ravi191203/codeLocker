@@ -54,7 +54,7 @@ export function EditSnippetForm({ snippet, onSuccess, folders }: EditSnippetForm
       code: snippet.code,
       language: snippet.language,
       tags: snippet.tags.join(', '),
-      folder: snippet.folder || "",
+      folder: snippet.folder || "no-folder",
     },
   });
 
@@ -168,7 +168,7 @@ export function EditSnippetForm({ snippet, onSuccess, folders }: EditSnippetForm
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">No Folder</SelectItem>
+                      <SelectItem value="no-folder">No Folder</SelectItem>
                       {folders.map(folder => <SelectItem key={folder._id} value={folder._id}>{folder.name}</SelectItem>)}
                     </SelectContent>
                   </Select>

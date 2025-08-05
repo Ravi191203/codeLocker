@@ -68,7 +68,7 @@ export function AddSnippetForm({ onSuccess, folders, selectedFolder }: AddSnippe
       code: "",
       language: languages[0],
       tags: "",
-      folder: selectedFolder || "",
+      folder: selectedFolder || "no-folder",
     },
   });
 
@@ -233,7 +233,7 @@ export function AddSnippetForm({ onSuccess, folders, selectedFolder }: AddSnippe
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">No Folder</SelectItem>
+                      <SelectItem value="no-folder">No Folder</SelectItem>
                       {folders.map(folder => <SelectItem key={folder._id} value={folder._id}>{folder.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
