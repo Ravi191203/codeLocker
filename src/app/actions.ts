@@ -16,15 +16,10 @@ export async function addSnippet(data: {
   code: string;
   language: string;
   tags: string;
-  folder?: string;
 }) {
   await dbConnect();
   const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-  const snippetData: any = { ...data, tags: tagsArray };
-
-  if (data.folder === 'no-folder') {
-    delete snippetData.folder;
-  }
+  const snippetData = { ...data, tags: tagsArray };
 
   const newSnippet = new Snippet(snippetData);
   await newSnippet.save();
@@ -37,16 +32,10 @@ export async function updateSnippet(id: string, data: {
     code: string;
     language: string;
     tags: string;
-    folder?: string;
 }) {
     await dbConnect();
     const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-    const updateData: any = { ...data, tags: tagsArray };
-
-    if (data.folder === 'no-folder') {
-      updateData.$unset = { folder: 1 };
-      delete updateData.folder;
-    }
+    const updateData = { ...data, tags: tagsArray };
 
     await Snippet.findByIdAndUpdate(id, updateData);
     revalidatePath('/');

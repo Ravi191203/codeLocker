@@ -1,5 +1,3 @@
-import { Schema } from "mongoose";
-
 export type Snippet = {
   _id: string;
   name: string;
@@ -7,17 +5,9 @@ export type Snippet = {
   code: string;
   tags: string[];
   description: string;
-  folder?: string;
   createdAt: Date;
   updatedAt: Date;
 };
-
-export type Folder = {
-  _id: string;
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
 
 export const languages = [
   'javascript',

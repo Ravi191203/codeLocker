@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { languages, type Snippet, type Folder } from '@/lib/data';
+import { languages, type Snippet } from '@/lib/data';
 import { useTransition } from 'react';
 import { updateSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -33,16 +33,14 @@ const formSchema = z.object({
   code: z.string().min(10, "Code must be at least 10 characters."),
   language: z.string(),
   tags: z.string(),
-  folder: z.string().optional(),
 });
 
 type EditSnippetFormProps = {
   snippet: Snippet;
   onSuccess: () => void;
-  folders: Folder[];
 };
 
-export function EditSnippetForm({ snippet, onSuccess, folders }: EditSnippetFormProps) {
+export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -54,7 +52,6 @@ export function EditSnippetForm({ snippet, onSuccess, folders }: EditSnippetForm
       code: snippet.code,
       language: snippet.language,
       tags: snippet.tags.join(', '),
-      folder: snippet.folder || "no-folder",
     },
   });
 
@@ -155,27 +152,6 @@ export function EditSnippetForm({ snippet, onSuccess, folders }: EditSnippetForm
           )}
         />
         </div>
-         <FormField
-              control={form.control}
-              name="folder"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Folder</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Assign to a folder (optional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="no-folder">No Folder</SelectItem>
-                      {folders.map(folder => <SelectItem key={folder._id} value={folder._id}>{folder.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
         </div>
         <DialogFooter className="border-t pt-4 bg-muted/50 p-6">
             <Button type="submit" disabled={isPending}>

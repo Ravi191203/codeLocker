@@ -6,7 +6,6 @@ export interface ISnippet extends Document {
   code: string;
   language: string;
   tags: string[];
-  folder?: Schema.Types.ObjectId;
 }
 
 const SnippetSchema: Schema = new Schema(
@@ -16,7 +15,6 @@ const SnippetSchema: Schema = new Schema(
     code: { type: String, required: true },
     language: { type: String, required: true },
     tags: { type: [String], default: [] },
-    folder: { type: Schema.Types.ObjectId, ref: 'Folder', required: false },
   },
   { timestamps: true }
 );
