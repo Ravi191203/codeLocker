@@ -129,7 +129,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex h-screen bg-background text-foreground">
         <Sidebar>
           <AppSidebar
