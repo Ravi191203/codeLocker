@@ -1,7 +1,7 @@
 export type Snippet = {
   _id: string;
   name: string;
-  language: 'javascript' | 'python' | 'html' | 'css' | 'sql';
+  language: string;
   code: string;
   tags: string[];
   description: string;
@@ -9,4 +9,25 @@ export type Snippet = {
   updatedAt: Date;
 };
 
-export const languages = ['javascript', 'python', 'html', 'css', 'sql'];
+export const languages = [
+  'javascript',
+  'python',
+  'html',
+  'css',
+  'sql',
+  'typescript',
+  'java',
+  'csharp',
+  'cpp',
+  'php',
+  'ruby',
+  'go',
+  'swift',
+  'kotlin',
+  'rust',
+  'bash',
+  'powershell',
+  'json',
+  'yaml',
+  'markdown'
+];

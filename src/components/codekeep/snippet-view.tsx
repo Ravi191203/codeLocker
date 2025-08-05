@@ -63,7 +63,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         
         <div className="flex-grow flex flex-col min-h-[200px]">
            <h3 className="font-semibold text-sm mb-2">Code</h3>
-           <CodeBlock code={snippet.code} className="flex-grow" />
+           <CodeBlock code={snippet.code} language={snippet.language} className="flex-grow" />
         </div>
       </CardContent>
     </div>

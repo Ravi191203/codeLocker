@@ -5,13 +5,16 @@ import { Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
   code: string;
+  language: string;
   className?: string;
 }
 
-export function CodeBlock({ code, className }: CodeBlockProps) {
+export function CodeBlock({ code, language, className }: CodeBlockProps) {
   const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
 
@@ -29,11 +32,11 @@ export function CodeBlock({ code, className }: CodeBlockProps) {
   };
 
   return (
-    <div className={cn('relative group', className)}>
+    <div className={cn('relative group h-full', className)}>
       <Button
         size="icon"
         variant="ghost"
-        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+        className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 z-10"
         onClick={copyToClipboard}
         aria-label="Copy code"
       >
@@ -43,9 +46,24 @@ export function CodeBlock({ code, className }: CodeBlockProps) {
           <Copy className="h-4 w-4" />
         )}
       </Button>
-      <pre className="bg-muted/50 p-4 rounded-lg overflow-x-auto text-sm text-foreground/90 h-full">
-        <code>{code}</code>
-      </pre>
+      <SyntaxHighlighter
+        language={language}
+        style={atomDark}
+        customStyle={{ 
+            margin: 0, 
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            height: '100%',
+            overflow: 'auto',
+            backgroundColor: 'hsl(var(--muted)/0.5)',
+        }}
+        codeTagProps={{
+            className: 'text-sm text-foreground/90'
+        }}
+        
+      >
+        {code}
+      </SyntaxHighlighter>
     </div>
   );
 }
