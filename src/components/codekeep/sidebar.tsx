@@ -72,7 +72,7 @@ export function AppSidebar({
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       <div className="p-4 space-y-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold tracking-tight">CodeKeep</h1>
+            <h1 className="text-xl font-bold tracking-tight">CodeLocker</h1>
             <Button variant="ghost" size="icon" className="md:hidden" asChild>
               <SidebarTrigger>
                 <Menu />
