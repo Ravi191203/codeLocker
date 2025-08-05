@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { languages } from '@/lib/data';
+import { languages, type Folder } from '@/lib/data';
 import { useTransition, useState, useEffect, useCallback } from 'react';
 import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -35,10 +35,13 @@ const formSchema = z.object({
   code: z.string().min(10, "Code must be at least 10 characters."),
   language: z.string(),
   tags: z.string(),
+  folder: z.string().optional(),
 });
 
 type AddSnippetFormProps = {
   onSuccess: () => void;
+  folders: Folder[];
+  selectedFolder?: string | null;
 };
 
 // Debounce function
@@ -52,7 +55,7 @@ function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
 }
 
 
-export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
+export function AddSnippetForm({ onSuccess, folders, selectedFolder }: AddSnippetFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -65,6 +68,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
       code: "",
       language: languages[0],
       tags: "",
+      folder: selectedFolder || "",
     },
   });
 
@@ -133,7 +137,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <FormField
             control={form.control}
             name="name"
@@ -216,6 +220,27 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
               )}
               />
           </div>
+          <FormField
+              control={form.control}
+              name="folder"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Folder</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Assign to a folder (optional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">No Folder</SelectItem>
+                      {folders.map(folder => <SelectItem key={folder._id} value={folder._id}>{folder.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
         </div>
         <DialogFooter className="border-t pt-4 bg-muted/50 p-6">
             <Button type="submit" disabled={isPending || isGenerating}>

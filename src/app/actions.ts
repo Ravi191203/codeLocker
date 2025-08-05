@@ -16,6 +16,7 @@ export async function addSnippet(data: {
   code: string;
   language: string;
   tags: string;
+  folder?: string;
 }) {
   await dbConnect();
   const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);
@@ -30,10 +31,18 @@ export async function updateSnippet(id: string, data: {
     code: string;
     language: string;
     tags: string;
+    folder?: string;
 }) {
     await dbConnect();
     const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-    await Snippet.findByIdAndUpdate(id, { ...data, tags: tagsArray });
+    const updateData: any = { ...data, tags: tagsArray };
+
+    if (data.folder === '') {
+      updateData.$unset = { folder: 1 };
+      delete updateData.folder;
+    }
+
+    await Snippet.findByIdAndUpdate(id, updateData);
     revalidatePath('/');
 }
 

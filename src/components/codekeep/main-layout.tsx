@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { AppSidebar } from './sidebar';
 import { SnippetView } from './snippet-view';
-import { type Snippet } from '@/lib/data';
+import { type Snippet, type Folder } from '@/lib/data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,17 +22,19 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getSnippets, deleteSnippet } from '@/app/actions';
+import { getFolders, addFolder, deleteFolder } from '@/app/folder-actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { Code2, Menu, Plus, Sparkles, FolderKanban, Search } from 'lucide-react';
+import { Menu, Plus, Sparkles, FolderKanban, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { SnippetList } from './snippet-list';
 
 export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('newest');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -43,16 +45,24 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const refetchSnippets = () => {
+  const refetchData = () => {
      startTransition(async () => {
-      const dbSnippets = await getSnippets();
+      const [dbSnippets, dbFolders] = await Promise.all([getSnippets(), getFolders()]);
       setSnippets(dbSnippets);
+      setFolders(dbFolders);
     });
   }
+
+  useEffect(() => {
+    refetchData();
+  }, []);
 
   const filteredSnippets = useMemo(() => {
     return snippets
       .filter((snippet) => {
+        const inFolder = selectedFolder ? snippet.folder === selectedFolder : true;
+        if (!inFolder) return false;
+
         if (!searchTerm) return true;
         const lowerSearch = searchTerm.toLowerCase();
         return (
@@ -76,7 +86,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
             return 0;
         }
       });
-  }, [snippets, searchTerm, sortOption]);
+  }, [snippets, searchTerm, sortOption, selectedFolder]);
 
   const handleSelectSnippet = (snippet: Snippet) => {
     setSelectedSnippet(snippet);
@@ -96,7 +106,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
             title: 'Snippet deleted',
             description: 'The snippet has been permanently deleted.',
           });
-          refetchSnippets();
+          refetchData();
           if (selectedSnippet?._id === snippetToDelete) {
               setSelectedSnippet(null);
           }
@@ -124,14 +134,55 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
     setSelectedSnippet(null); // Close the view dialog
   }
 
+  const handleAddFolder = async (name: string) => {
+    startTransition(async () => {
+      try {
+        await addFolder(name);
+        toast({
+          title: 'Folder created!',
+          description: `Folder "${name}" has been created successfully.`,
+        });
+        refetchData();
+      } catch (error: any) {
+         toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: error.message || "There was a problem creating the folder.",
+        });
+      }
+    });
+  }
+
+  const handleDeleteFolder = async (id: string) => {
+    startTransition(async () => {
+      try {
+        await deleteFolder(id);
+        toast({
+          title: 'Folder deleted',
+          description: 'The folder and its snippets have been deleted.',
+        });
+        if (selectedFolder === id) {
+          setSelectedFolder(null);
+        }
+        refetchData();
+      } catch (error) {
+         toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: "There was a problem deleting the folder.",
+        });
+      }
+    });
+  };
+
   const onSnippetAdded = () => {
     setAddDialogOpen(false);
-    refetchSnippets();
+    refetchData();
   }
   
   const onSnippetUpdated = () => {
     setEditDialogOpen(false);
-    refetchSnippets();
+    refetchData();
     if (snippetToEdit) {
       startTransition(async () => {
         const newSnippets = await getSnippets();
@@ -147,11 +198,11 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
 
   const onSnippetSaved = () => {
     setSelectedSnippet(null);
-    refetchSnippets();
+    refetchData();
   };
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider>
       <div className="flex h-screen bg-background text-foreground">
         <Sidebar>
           <AppSidebar
@@ -163,6 +214,11 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
             snippets={filteredSnippets}
             onSelectSnippet={handleSelectSnippet}
             selectedSnippetId={selectedSnippet?._id || null}
+            folders={folders}
+            selectedFolder={selectedFolder}
+            onSelectFolder={setSelectedFolder}
+            onAddFolder={handleAddFolder}
+            onDeleteFolder={handleDeleteFolder}
           />
         </Sidebar>
         <SidebarInset>
@@ -246,6 +302,8 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
           </DialogHeader>
           <AddSnippetForm
             onSuccess={onSnippetAdded}
+            folders={folders}
+            selectedFolder={selectedFolder}
           />
         </DialogContent>
       </Dialog>
@@ -262,6 +320,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
             <EditSnippetForm
               snippet={snippetToEdit}
               onSuccess={onSnippetUpdated}
+              folders={folders}
             />
           )}
         </DialogContent>
