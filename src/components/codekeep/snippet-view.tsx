@@ -4,7 +4,8 @@ import type { Snippet } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Code2 } from 'lucide-react';
+import { Pencil, Trash2, Code2, Menu } from 'lucide-react';
+import { SidebarTrigger } from '../ui/sidebar';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -15,8 +16,11 @@ interface SnippetViewProps {
 export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
   if (!snippet) {
     return (
-      <div className="flex h-full items-center justify-center bg-muted/20">
+      <div className="flex h-full items-center justify-center bg-background">
         <div className="text-center text-muted-foreground">
+            <div className="md:hidden mb-4">
+                <SidebarTrigger />
+            </div>
           <Code2 size={48} className="mx-auto" />
           <h2 className="mt-4 text-xl font-medium">Select a snippet</h2>
           <p className="text-sm">Choose a snippet from the list to view its code, or add a new one.</p>
@@ -26,10 +30,11 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-background">
        <header className="flex-shrink-0 border-b p-4 h-16 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">{snippet.name}</h2>
+        <div className="flex items-center gap-4">
+          <SidebarTrigger className="md:hidden" />
+          <h2 className="text-lg font-semibold truncate">{snippet.name}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onEdit(snippet)}>
@@ -42,14 +47,14 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
           </Button>
         </div>
       </header>
-      <div className="p-4 flex-grow overflow-y-auto space-y-4">
+      <div className="p-6 flex-grow overflow-y-auto space-y-6">
         <div>
-          <h3 className="font-semibold text-sm mb-2">Description</h3>
-          <p className="text-sm text-muted-foreground">{snippet.description}</p>
+          <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Description</h3>
+          <p className="text-sm">{snippet.description}</p>
         </div>
 
         <div>
-           <h3 className="font-semibold text-sm mb-2">Language & Tags</h3>
+           <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Language & Tags</h3>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
             {snippet.tags.map((tag) => (
@@ -61,8 +66,8 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         </div>
         
         <div className="flex-grow flex flex-col min-h-[200px]">
-           <h3 className="font-semibold text-sm mb-2">Code</h3>
-           <div className="h-full max-h-[calc(100vh - 300px)]">
+           <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Code</h3>
+           <div className="h-full max-h-[calc(100vh-320px)]">
              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
            </div>
         </div>

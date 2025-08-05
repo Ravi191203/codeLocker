@@ -76,7 +76,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="p-4">
+        <div className="p-6 space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -110,47 +110,49 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
             <FormItem>
               <FormLabel>Code</FormLabel>
               <FormControl>
-                <Textarea placeholder="Paste your code here" className="min-h-[150px] font-mono" {...field} />
+                <Textarea placeholder="Paste your code here" className="min-h-[200px] font-mono" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-         <FormField
+        <div className="grid grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                        <SelectTrigger>
+                        <SelectValue placeholder="Select a language" />
+                        </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        {languages.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                    <FormMessage />
+                </FormItem>
+                )}
+            />
+            <FormField
             control={form.control}
-            name="language"
+            name="tags"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Language</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a language" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {languages.map(lang => <SelectItem key={lang} value={lang}>{lang}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <FormItem>
+                <FormLabel>Tags</FormLabel>
+                <FormControl>
+                    <Input placeholder="react, hook, auth (comma-separated)" {...field} />
+                </FormControl>
                 <FormMessage />
-              </FormItem>
+                </FormItem>
             )}
-          />
-         <FormField
-          control={form.control}
-          name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Tags</FormLabel>
-              <FormControl>
-                <Input placeholder="react, hook, auth (comma-separated)" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            />
         </div>
-        <DialogFooter className="border-t pt-4">
+        </div>
+        <DialogFooter className="border-t pt-4 bg-muted/50 p-6">
             <Button type="submit" disabled={isPending}>
             {isPending ? "Adding..." : "Add Snippet"}
             </Button>

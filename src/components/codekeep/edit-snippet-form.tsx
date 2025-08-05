@@ -77,7 +77,7 @@ export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="p-4">
+        <div className="p-6 space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -111,12 +111,13 @@ export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
             <FormItem>
               <FormLabel>Code</FormLabel>
               <FormControl>
-                <Textarea placeholder="Paste your code here" className="min-h-[150px] font-mono" {...field} />
+                <Textarea placeholder="Paste your code here" className="min-h-[200px] font-mono" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        <div className="grid grid-cols-2 gap-4">
          <FormField
             control={form.control}
             name="language"
@@ -151,7 +152,8 @@ export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
           )}
         />
         </div>
-        <DialogFooter className="border-t pt-4">
+        </div>
+        <DialogFooter className="border-t pt-4 bg-muted/50 p-6">
             <Button type="submit" disabled={isPending}>
             {isPending ? "Saving..." : "Save Changes"}
             </Button>

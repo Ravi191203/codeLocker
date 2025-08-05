@@ -23,7 +23,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { SnippetList } from './snippet-list';
 
 export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
@@ -161,7 +160,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
       </AlertDialog>
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Add New Snippet</DialogTitle>
           </DialogHeader>
@@ -172,7 +171,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
       </Dialog>
       
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Edit Snippet</DialogTitle>
           </DialogHeader>
