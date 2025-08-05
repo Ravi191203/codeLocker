@@ -49,6 +49,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
       <SyntaxHighlighter
         language={language}
         style={vscDarkPlus}
+        showLineNumbers
         customStyle={{ 
             margin: 0, 
             padding: '1rem',
