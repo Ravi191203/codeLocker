@@ -69,21 +69,23 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   });
 
   const codeValue = form.watch("code");
-  const languageValue = form.watch("language");
 
   const debouncedGenerateDetails = useCallback(
-    debounce(async (code: string, language: string) => {
+    debounce(async (code: string) => {
       if (code.length < 20) return; // Don't run on very short code
       setIsGenerating(true);
       try {
-        const result = await generateSnippetDetails({ code, language });
+        const result = await generateSnippetDetails({ code });
         if (result) {
           form.setValue("name", result.name, { shouldValidate: true });
           form.setValue("description", result.description, { shouldValidate: true });
           form.setValue("tags", result.tags.join(', '), { shouldValidate: true });
+          if (languages.includes(result.language.toLowerCase())) {
+            form.setValue("language", result.language.toLowerCase(), { shouldValidate: true });
+          }
           toast({
             title: "AI Assistant finished!",
-            description: "The name, description, and tags have been filled out.",
+            description: "The name, description, language and tags have been filled out.",
           });
         }
       } catch (error) {
@@ -104,9 +106,9 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
     // Check if name/desc/tags are already filled. If so, don't auto-generate.
     const hasExistingDetails = form.getValues('name') || form.getValues('description') || form.getValues('tags');
     if (codeValue && !hasExistingDetails) {
-       debouncedGenerateDetails(codeValue, languageValue);
+       debouncedGenerateDetails(codeValue);
     }
-  }, [codeValue, languageValue, debouncedGenerateDetails, form]);
+  }, [codeValue, debouncedGenerateDetails, form]);
 
 
   function onSubmit(values: z.infer<typeof formSchema>) {
@@ -186,7 +188,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
                   render={({ field }) => (
                   <FormItem>
                       <FormLabel>Language</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                       <FormControl>
                           <SelectTrigger>
                           <SelectValue placeholder="Select a language" />

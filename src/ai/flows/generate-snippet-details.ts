@@ -2,7 +2,7 @@
 /**
  * @fileOverview An AI flow for generating details about a code snippet.
  *
- * - generateSnippetDetails - A function that generates a name, description, and tags for a code snippet.
+ * - generateSnippetDetails - A function that generates a name, description, language, and tags for a code snippet.
  * - GenerateSnippetDetailsInput - The input type for the generateSnippetDetails function.
  * - GenerateSnippetDetailsOutput - The return type for the generateSnippetDetails function.
  */
@@ -12,13 +12,13 @@ import { z } from 'zod';
 
 const GenerateSnippetDetailsInputSchema = z.object({
   code: z.string().describe('The code snippet.'),
-  language: z.string().describe('The programming language of the snippet.'),
 });
 export type GenerateSnippetDetailsInput = z.infer<typeof GenerateSnippetDetailsInputSchema>;
 
 const GenerateSnippetDetailsOutputSchema = z.object({
   name: z.string().describe('A short, descriptive name for the code snippet (5-7 words max).'),
   description: z.string().describe('A clear, concise description of what the code snippet does.'),
+  language: z.string().describe('The programming language of the snippet (e.g., "javascript", "python"). Should be one of the options provided.'),
   tags: z.array(z.string()).describe('An array of 3-5 relevant lowercase tags (e.g., "react", "hook", "auth").'),
 });
 export type GenerateSnippetDetailsOutput = z.infer<typeof GenerateSnippetDetailsOutputSchema>;
@@ -27,12 +27,14 @@ const prompt = ai.definePrompt({
   name: 'generateSnippetDetailsPrompt',
   input: { schema: GenerateSnippetDetailsInputSchema },
   output: { schema: GenerateSnippetDetailsOutputSchema },
-  prompt: `You are an expert software engineer. Analyze the following code snippet written in {{language}} and generate a concise name, a clear description, and relevant tags for it.
+  prompt: `You are an expert software engineer. Analyze the following code snippet and generate a concise name, a clear description, identify its programming language, and suggest relevant tags for it.
 
 Code:
-\`\`\`{{language}}
+\`\`\`
 {{{code}}}
 \`\`\`
+
+The language must be one of the following options: javascript, python, html, css, sql, typescript, java, csharp, cpp, php, ruby, go, swift, kotlin, rust, bash, powershell, json, yaml, markdown.
 
 Provide the output in the requested JSON format. The name should be short and descriptive. The description should explain the purpose and functionality of the code. The tags should be lowercase and help categorize the snippet.`,
 });
