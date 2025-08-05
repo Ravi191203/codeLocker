@@ -38,6 +38,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
   const handleExplainCode = async () => {
     if (!snippet) return;
     setIsExplaining(true);
+    setExplanation(null);
     try {
       const result = await explainCode({ code: snippet.code, language: snippet.language });
       setExplanation(result.explanation);
@@ -110,13 +111,13 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
 
         <Accordion type="multiple" className="w-full space-y-4">
           <AccordionItem value="item-1" className="border rounded-md px-4">
-              <AccordionTrigger className="p-0 hover:no-underline">
+              <AccordionTrigger className="py-4 hover:no-underline">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  <h3 className="font-semibold text-sm text-muted-foreground">AI Explanation</h3>
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-sm">AI Explanation</h3>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pt-4">
+              <AccordionContent className="pt-2 pb-4">
                 <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
                   {isExplaining ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -127,7 +128,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                 </Button>
                 {isExplaining && !explanation && <p className="text-sm text-muted-foreground mt-4">Generating explanation...</p>}
                 {explanation && (
-                  <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
+                  <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border rounded-lg p-4 bg-muted/50">
                       <ReactMarkdown
                       components={{
                         code({ node, className, children, ...props }) {
@@ -138,7 +139,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                               language={match[1]}
                               PreTag="div"
                               customStyle={{
-                                backgroundColor: 'hsl(var(--muted)/0.5)',
+                                backgroundColor: 'hsl(var(--background))',
                                 borderRadius: '0.5rem',
                                 padding: '1rem',
                                 margin: '1rem 0',
@@ -147,7 +148,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                               {String(children).replace(/\n$/, '')}
                             </SyntaxHighlighter>
                           ) : (
-                            <code className="bg-muted/50 rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
+                            <code className="bg-background rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
                               {children}
                             </code>
                           );
@@ -162,13 +163,13 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
           </AccordionItem>
           
           <AccordionItem value="item-2" className="border rounded-md px-4">
-              <AccordionTrigger className="p-0 hover:no-underline">
+              <AccordionTrigger className="py-4 hover:no-underline">
                 <div className="flex items-center gap-2">
-                  <Languages className="h-4 w-4" />
-                  <h3 className="font-semibold text-sm text-muted-foreground">AI Code Converter</h3>
+                  <Languages className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-sm">AI Code Converter</h3>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="pt-4">
+              <AccordionContent className="pt-2 pb-4">
                 <div className="flex items-center gap-2">
                   <Select onValueChange={setTargetLanguage} defaultValue={targetLanguage}>
                     <SelectTrigger className="w-[180px]">
