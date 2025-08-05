@@ -25,6 +25,7 @@ import { languages } from '@/lib/data';
 import { useTransition } from 'react';
 import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { DialogFooter } from '../ui/dialog';
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -75,6 +76,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="p-4">
         <FormField
           control={form.control}
           name="name"
@@ -147,9 +149,12 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Adding..." : "Add Snippet"}
-        </Button>
+        </div>
+        <DialogFooter className="border-t pt-4">
+            <Button type="submit" disabled={isPending}>
+            {isPending ? "Adding..." : "Add Snippet"}
+            </Button>
+        </DialogFooter>
       </form>
     </Form>
   );

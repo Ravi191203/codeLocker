@@ -5,7 +5,6 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { AppSidebar } from './sidebar';
 import { SnippetList } from './snippet-list';
@@ -22,32 +21,27 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '../ui/button';
-import { PanelLeft } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
 
-export function MainLayout() {
-  const [snippets, setSnippets] = useState<Snippet[]>([]);
-  const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
+export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) {
+  const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
+  const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
   const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
-  const isMobile = useIsMobile();
   const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    startTransition(async () => {
+  const refetchSnippets = () => {
+     startTransition(async () => {
       const dbSnippets = await getSnippets();
       setSnippets(dbSnippets);
     });
-  }, []);
+  }
 
   const filteredSnippets = useMemo(() => {
     return snippets
@@ -63,21 +57,8 @@ export function MainLayout() {
       });
   }, [snippets, searchTerm]);
 
-  useEffect(() => {
-    if (filteredSnippets.length > 0 && !filteredSnippets.find(s => s._id === selectedSnippetId)) {
-      setSelectedSnippetId(filteredSnippets[0]._id);
-    } else if (filteredSnippets.length === 0) {
-      setSelectedSnippetId(null);
-    }
-  }, [filteredSnippets, selectedSnippetId]);
-
-  const selectedSnippet = useMemo(() => {
-    if (!selectedSnippetId) return undefined;
-    return snippets.find((s) => s._id === selectedSnippetId);
-  }, [selectedSnippetId, snippets]);
-
-  const handleSelectSnippet = (id: string) => {
-    setSelectedSnippetId(id);
+  const handleSelectSnippet = (snippet: Snippet) => {
+    setSelectedSnippet(snippet);
   };
 
   const handleDeleteRequest = (id: string) => {
@@ -89,8 +70,7 @@ export function MainLayout() {
     if (snippetToDelete) {
       startTransition(async () => {
         await deleteSnippet(snippetToDelete);
-        const dbSnippets = await getSnippets();
-        setSnippets(dbSnippets);
+        refetchSnippets();
         setDeleteDialogOpen(false);
         setSnippetToDelete(null);
       });
@@ -101,47 +81,21 @@ export function MainLayout() {
     setAddDialogOpen(true);
   };
 
-  const handleEditRequest = (id: string) => {
-    const snippet = snippets.find(s => s._id === id);
-    if (snippet) {
-      setSnippetToEdit(snippet);
-      setEditDialogOpen(true);
-    }
+  const handleEditRequest = (snippet: Snippet) => {
+    setSnippetToEdit(snippet);
+    setEditDialogOpen(true);
   }
 
   const onSnippetAdded = () => {
     setAddDialogOpen(false);
-    startTransition(async () => {
-      const dbSnippets = await getSnippets();
-      setSnippets(dbSnippets);
-    });
+    refetchSnippets();
   }
   
   const onSnippetUpdated = () => {
     setEditDialogOpen(false);
     setSnippetToEdit(null);
-    startTransition(async () => {
-      const dbSnippets = await getSnippets();
-      setSnippets(dbSnippets);
-    });
+    refetchSnippets();
   }
-
-  const MobileSnippetList = () => (
-    <Sheet>
-       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="md:hidden fixed bottom-4 right-4 z-10 shadow-lg">
-          <PanelLeft />
-        </Button>
-       </SheetTrigger>
-       <SheetContent side="left" className="p-0 w-80">
-        <SnippetList
-            snippets={filteredSnippets}
-            selectedSnippetId={selectedSnippetId}
-            onSelectSnippet={handleSelectSnippet}
-        />
-       </SheetContent>
-    </Sheet>
-  )
 
   return (
     <SidebarProvider>
@@ -153,29 +107,16 @@ export function MainLayout() {
             onAddSnippet={handleAddSnippet}
           />
         </Sidebar>
-        <SidebarInset className="p-0 m-0 rounded-none shadow-none bg-transparent">
-          <div className="flex h-full">
-            <div className="hidden md:flex flex-col w-[320px] lg:w-[400px] border-r border-border h-full">
-              <div className="p-4 border-b border-border flex items-center gap-2 h-16">
-                <SidebarTrigger />
-                <h2 className="font-semibold text-lg">Snippets</h2>
-              </div>
+        <SidebarInset>
+           <main className="flex-1 h-full overflow-y-auto p-4 md:p-6">
               <SnippetList
                 snippets={filteredSnippets}
-                selectedSnippetId={selectedSnippetId}
                 onSelectSnippet={handleSelectSnippet}
-              />
-            </div>
-            <main className="flex-1 h-full overflow-y-auto">
-              <SnippetView
-                snippet={selectedSnippet}
                 onEdit={handleEditRequest}
                 onDelete={handleDeleteRequest}
               />
             </main>
-          </div>
         </SidebarInset>
-        {isMobile && <MobileSnippetList />}
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -219,6 +160,19 @@ export function MainLayout() {
           )}
         </DialogContent>
       </Dialog>
+       
+       <Dialog open={!!selectedSnippet} onOpenChange={(isOpen) => !isOpen && setSelectedSnippet(null)}>
+        <DialogContent className="max-w-4xl h-[90vh]">
+           {selectedSnippet && (
+             <SnippetView
+                snippet={selectedSnippet}
+                onEdit={() => handleEditRequest(selectedSnippet)}
+                onDelete={() => handleDeleteRequest(selectedSnippet._id)}
+              />
+           )}
+        </DialogContent>
+       </Dialog>
+
     </SidebarProvider>
   );
 }

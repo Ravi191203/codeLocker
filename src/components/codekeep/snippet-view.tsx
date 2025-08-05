@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, Code2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { CardHeader, CardTitle, CardContent } from '../ui/card';
+import { DialogHeader, DialogTitle } from '../ui/dialog';
 
 interface SnippetViewProps {
   snippet: Snippet | undefined;
@@ -28,9 +29,9 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
 
   return (
     <div className="h-full flex flex-col">
-       <CardHeader className="flex-shrink-0 flex flex-row items-center justify-between border-b p-4 h-16">
+       <DialogHeader className="flex-shrink-0 flex flex-row items-center justify-between border-b p-4 h-16">
         <div>
-          <CardTitle className="text-lg">{snippet.name}</CardTitle>
+          <DialogTitle className="text-lg">{snippet.name}</DialogTitle>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => onEdit(snippet._id)}>
@@ -42,8 +43,8 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
              <span className="sr-only">Delete Snippet</span>
           </Button>
         </div>
-      </CardHeader>
-      <CardContent className="p-4 flex-grow overflow-y-auto space-y-4">
+      </DialogHeader>
+      <div className="p-4 flex-grow overflow-y-auto space-y-4">
         <div>
           <h3 className="font-semibold text-sm mb-2">Description</h3>
           <p className="text-sm text-muted-foreground">{snippet.description}</p>
@@ -63,9 +64,11 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         
         <div className="flex-grow flex flex-col min-h-[200px]">
            <h3 className="font-semibold text-sm mb-2">Code</h3>
-           <CodeBlock code={snippet.code} language={snippet.language} className="flex-grow" />
+           <div className="h-full max-h-[calc(90vh-300px)]">
+             <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
+           </div>
         </div>
-      </CardContent>
+      </div>
     </div>
   );
 }

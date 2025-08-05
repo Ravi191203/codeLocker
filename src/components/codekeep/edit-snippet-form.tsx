@@ -25,6 +25,7 @@ import { languages, type Snippet } from '@/lib/data';
 import { useTransition } from 'react';
 import { updateSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
+import { DialogFooter } from '../ui/dialog';
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -76,6 +77,7 @@ export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="p-4">
         <FormField
           control={form.control}
           name="name"
@@ -148,9 +150,12 @@ export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Saving..." : "Save Changes"}
-        </Button>
+        </div>
+        <DialogFooter className="border-t pt-4">
+            <Button type="submit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save Changes"}
+            </Button>
+        </DialogFooter>
       </form>
     </Form>
   );
