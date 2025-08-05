@@ -16,7 +16,6 @@ export async function addSnippet(data: {
   code: string;
   language: string;
   tags: string;
-  folderId: string;
 }) {
   await dbConnect();
   const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);

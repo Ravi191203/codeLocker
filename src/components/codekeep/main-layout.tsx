@@ -10,7 +10,7 @@ import {
 import { AppSidebar } from './sidebar';
 import { SnippetList } from './snippet-list';
 import { SnippetView } from './snippet-view';
-import { folders, type Snippet } from '@/lib/data';
+import { type Snippet } from '@/lib/data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,7 +31,6 @@ import { AddSnippetForm } from './add-snippet-form';
 
 export function MainLayout() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(folders[0]?.id || null);
   const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -49,7 +48,6 @@ export function MainLayout() {
 
   const filteredSnippets = useMemo(() => {
     return snippets
-      .filter((snippet) => (selectedFolderId ? snippet.folderId === selectedFolderId : true))
       .filter((snippet) => {
         if (!searchTerm) return true;
         const lowerSearch = searchTerm.toLowerCase();
@@ -60,7 +58,7 @@ export function MainLayout() {
           snippet.tags.some((tag) => tag.toLowerCase().includes(lowerSearch))
         );
       });
-  }, [snippets, selectedFolderId, searchTerm]);
+  }, [snippets, searchTerm]);
 
   useEffect(() => {
     setSelectedSnippetId(filteredSnippets[0]?._id || null);
@@ -126,8 +124,6 @@ export function MainLayout() {
       <div className="flex h-screen bg-background text-foreground">
         <Sidebar>
           <AppSidebar
-            selectedFolderId={selectedFolderId}
-            onSelectFolder={setSelectedFolderId}
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
             onAddSnippet={handleAddSnippet}
@@ -181,8 +177,6 @@ export function MainLayout() {
             <DialogTitle>Add New Snippet</DialogTitle>
           </DialogHeader>
           <AddSnippetForm
-            folders={folders}
-            currentFolderId={selectedFolderId}
             onSuccess={onSnippetAdded}
           />
         </DialogContent>

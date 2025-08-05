@@ -1,23 +1,17 @@
 "use client";
 
-import { folders } from '@/lib/data';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '../ui/scroll-area';
 
 interface AppSidebarProps {
-  selectedFolderId: string | null;
-  onSelectFolder: (id: string) => void;
   searchTerm: string;
   onSearch: (term: string) => void;
   onAddSnippet: () => void;
 }
 
 export function AppSidebar({
-  selectedFolderId,
-  onSelectFolder,
   searchTerm,
   onSearch,
   onAddSnippet,
@@ -37,31 +31,7 @@ export function AppSidebar({
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
-        <nav className="p-4">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-            Folders
-          </h2>
-          <ul className="space-y-1">
-            {folders.map((folder) => (
-              <li key={folder.id}>
-                <Button
-                  variant={selectedFolderId === folder.id ? 'secondary' : 'ghost'}
-                  className={cn(
-                    'w-full justify-start',
-                    selectedFolderId === folder.id &&
-                      'bg-sidebar-accent text-sidebar-accent-foreground'
-                  )}
-                  onClick={() => onSelectFolder(folder.id)}
-                >
-                  <folder.icon className="mr-3 h-4 w-4" />
-                  <span>{folder.name}</span>
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </ScrollArea>
+      <ScrollArea className="flex-1" />
 
       <div className="p-4 mt-auto border-t border-sidebar-border">
         <Button className="w-full bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90" onClick={onAddSnippet}>

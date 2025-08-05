@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Folder, languages } from '@/lib/data';
+import { languages } from '@/lib/data';
 import { useTransition } from 'react';
 import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -32,16 +32,13 @@ const formSchema = z.object({
   code: z.string().min(10, "Code must be at least 10 characters."),
   language: z.string(),
   tags: z.string(),
-  folderId: z.string(),
 });
 
 type AddSnippetFormProps = {
-  folders: Folder[];
-  currentFolderId: string | null;
   onSuccess: () => void;
 };
 
-export function AddSnippetForm({ folders, currentFolderId, onSuccess }: AddSnippetFormProps) {
+export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -53,7 +50,6 @@ export function AddSnippetForm({ folders, currentFolderId, onSuccess }: AddSnipp
       code: "",
       language: languages[0],
       tags: "",
-      folderId: currentFolderId || folders[0].id,
     },
   });
 
@@ -118,8 +114,7 @@ export function AddSnippetForm({ folders, currentFolderId, onSuccess }: AddSnipp
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
+         <FormField
             control={form.control}
             name="language"
             render={({ field }) => (
@@ -139,27 +134,6 @@ export function AddSnippetForm({ folders, currentFolderId, onSuccess }: AddSnipp
               </FormItem>
             )}
           />
-           <FormField
-            control={form.control}
-            name="folderId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Folder</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a folder" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {folders.map(folder => <SelectItem key={folder.id} value={folder.id}>{folder.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
          <FormField
           control={form.control}
           name="tags"

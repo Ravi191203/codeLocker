@@ -6,7 +6,6 @@ export interface ISnippet extends Document {
   code: string;
   language: 'javascript' | 'python' | 'html' | 'css' | 'sql';
   tags: string[];
-  folderId: string;
 }
 
 const SnippetSchema: Schema = new Schema(
@@ -16,7 +15,6 @@ const SnippetSchema: Schema = new Schema(
     code: { type: String, required: true },
     language: { type: String, required: true, enum: ['javascript', 'python', 'html', 'css', 'sql'] },
     tags: { type: [String], default: [] },
-    folderId: { type: String, required: true },
   },
   { timestamps: true }
 );
