@@ -28,6 +28,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
   const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState('newest');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -62,8 +63,22 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
           (snippet.description && snippet.description.toLowerCase().includes(lowerSearch)) ||
           snippet.tags.some((tag) => tag.toLowerCase().includes(lowerSearch))
         );
+      })
+      .sort((a, b) => {
+        switch (sortOption) {
+          case 'newest':
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          case 'oldest':
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          case 'a-z':
+            return a.name.localeCompare(b.name);
+          case 'z-a':
+            return b.name.localeCompare(a.name);
+          default:
+            return 0;
+        }
       });
-  }, [snippets, searchTerm]);
+  }, [snippets, searchTerm, sortOption]);
 
   const handleSelectSnippet = (snippet: Snippet) => {
     setSelectedSnippet(snippet);
@@ -125,6 +140,8 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
           <AppSidebar
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
             onAddSnippet={handleAddSnippet}
             snippets={filteredSnippets}
             onSelectSnippet={handleSelectSnippet}

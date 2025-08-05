@@ -8,10 +8,19 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Snippet } from '@/lib/data';
 import { cn } from '@/lib/utils';
 import { SidebarTrigger } from '../ui/sidebar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface AppSidebarProps {
   searchTerm: string;
   onSearch: (term: string) => void;
+  sortOption: string;
+  onSortChange: (option: string) => void;
   onAddSnippet: () => void;
   snippets: Snippet[];
   onSelectSnippet: (snippet: Snippet) => void;
@@ -52,6 +61,8 @@ const truncateName = (name: string, wordLimit: number) => {
 export function AppSidebar({
   searchTerm,
   onSearch,
+  sortOption,
+  onSortChange,
   onAddSnippet,
   snippets,
   onSelectSnippet,
@@ -77,6 +88,17 @@ export function AppSidebar({
             onChange={(e) => onSearch(e.target.value)}
           />
         </div>
+         <Select value={sortOption} onValueChange={onSortChange}>
+            <SelectTrigger className="w-full bg-muted/50">
+                <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="oldest">Oldest</SelectItem>
+                <SelectItem value="a-z">A-Z</SelectItem>
+                <SelectItem value="z-a">Z-A</SelectItem>
+            </SelectContent>
+         </Select>
       </div>
 
       <ScrollArea className="flex-1">
