@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, Code2 } from 'lucide-react';
-import { CardHeader, CardTitle, CardContent } from '../ui/card';
-import { DialogHeader, DialogTitle } from '../ui/dialog';
+import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 
 interface SnippetViewProps {
   snippet: Snippet | undefined;
@@ -29,19 +28,9 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
 
   return (
     <div className="h-full flex flex-col">
-       <DialogHeader className="flex-shrink-0 flex flex-row items-center justify-between border-b p-4 h-16">
+       <DialogHeader className="flex-shrink-0 border-b p-4 h-16">
         <div>
           <DialogTitle className="text-lg">{snippet.name}</DialogTitle>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => onEdit(snippet._id)}>
-            <Pencil className="h-5 w-5" />
-            <span className="sr-only">Edit Snippet</span>
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => onDelete(snippet._id)} className="hover:bg-destructive/10 hover:text-destructive">
-            <Trash2 className="h-5 w-5" />
-             <span className="sr-only">Delete Snippet</span>
-          </Button>
         </div>
       </DialogHeader>
       <div className="p-4 flex-grow overflow-y-auto space-y-4">
@@ -69,6 +58,18 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
            </div>
         </div>
       </div>
+       <DialogFooter className="border-t p-4 justify-end flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => onEdit(snippet._id)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button variant="destructive" onClick={() => onDelete(snippet._id)}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </div>
+      </DialogFooter>
     </div>
   );
 }
