@@ -5,15 +5,17 @@ import type { Snippet } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { explainCode } from '@/ai/flows/explain-code';
+import { convertCode } from '@/ai/flows/convert-code';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { languages } from '@/lib/data';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -24,17 +26,18 @@ interface SnippetViewProps {
 export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
+  const [convertedCode, setConvertedCode] = useState<string | null>(null);
+  const [isConverting, setIsConverting] = useState(false);
+  const [targetLanguage, setTargetLanguage] = useState<string>(languages[0]);
   const { toast } = useToast();
 
   if (!snippet) {
-    return null; // Don't render anything if no snippet is selected
+    return null;
   }
   
   const handleExplainCode = async () => {
     if (!snippet) return;
     setIsExplaining(true);
-    // Don't clear old explanation for better UX
-    // setExplanation(null); 
     try {
       const result = await explainCode({ code: snippet.code, language: snippet.language });
       setExplanation(result.explanation);
@@ -50,6 +53,28 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
     }
   };
 
+  const handleConvertCode = async () => {
+    if (!snippet || !targetLanguage) return;
+    setIsConverting(true);
+    setConvertedCode(null);
+    try {
+      const result = await convertCode({
+        code: snippet.code,
+        sourceLanguage: snippet.language,
+        targetLanguage: targetLanguage
+      });
+      setConvertedCode(result.convertedCode);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem converting the code.",
+      });
+    } finally {
+      setIsConverting(false);
+    }
+  };
 
   return (
     <>
@@ -74,67 +99,110 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
           </div>
         </div>
         
-        <div>
-           <div className="flex items-center justify-between mb-2">
+        <div className="space-y-2">
+           <div className="flex items-center justify-between">
              <h3 className="font-semibold text-sm text-muted-foreground">Code</h3>
-             <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
-                {isExplaining ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
-                Explain Code
-              </Button>
            </div>
            <div className="h-full max-h-[300px]">
              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
            </div>
         </div>
 
-        {(isExplaining || explanation) && (
-          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
-             <AccordionItem value="item-1">
-                <AccordionTrigger>
-                   <h3 className="font-semibold text-sm text-muted-foreground">AI Explanation</h3>
-                </AccordionTrigger>
-                <AccordionContent>
-                  {isExplaining && !explanation && <p className="text-sm text-muted-foreground">Generating explanation...</p>}
-                  {explanation && (
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                       <ReactMarkdown
-                        components={{
-                          code({ node, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(className || '');
-                            return match ? (
-                              <SyntaxHighlighter
-                                style={vscDarkPlus}
-                                language={match[1]}
-                                PreTag="div"
-                                customStyle={{
-                                  backgroundColor: 'hsl(var(--muted)/0.5)',
-                                  borderRadius: '0.5rem',
-                                  padding: '1rem',
-                                  margin: '1rem 0',
-                                }}
-                              >
-                                {String(children).replace(/\n$/, '')}
-                              </SyntaxHighlighter>
-                            ) : (
-                              <code className="bg-muted/50 rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                        }}
-                      >
-                        {explanation}
-                      </ReactMarkdown>
-                    </div>
+        <Accordion type="multiple" className="w-full space-y-4">
+          <AccordionItem value="item-1" className="border rounded-md px-4">
+              <AccordionTrigger className="p-0 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  <h3 className="font-semibold text-sm text-muted-foreground">AI Explanation</h3>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
+                  {isExplaining ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
                   )}
-                </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        )}
+                  {explanation ? 'Regenerate Explanation' : 'Explain Code'}
+                </Button>
+                {isExplaining && !explanation && <p className="text-sm text-muted-foreground mt-4">Generating explanation...</p>}
+                {explanation && (
+                  <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
+                      <ReactMarkdown
+                      components={{
+                        code({ node, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          return match ? (
+                            <SyntaxHighlighter
+                              style={vscDarkPlus}
+                              language={match[1]}
+                              PreTag="div"
+                              customStyle={{
+                                backgroundColor: 'hsl(var(--muted)/0.5)',
+                                borderRadius: '0.5rem',
+                                padding: '1rem',
+                                margin: '1rem 0',
+                              }}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code className="bg-muted/50 rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {explanation}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </AccordionContent>
+          </AccordionItem>
+          
+          <AccordionItem value="item-2" className="border rounded-md px-4">
+              <AccordionTrigger className="p-0 hover:no-underline">
+                <div className="flex items-center gap-2">
+                  <Languages className="h-4 w-4" />
+                  <h3 className="font-semibold text-sm text-muted-foreground">AI Code Converter</h3>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-4">
+                <div className="flex items-center gap-2">
+                  <Select onValueChange={setTargetLanguage} defaultValue={targetLanguage}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.filter(l => l !== snippet.language).map(lang => (
+                        <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" onClick={handleConvertCode} disabled={isConverting}>
+                    {isConverting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Languages className="h-4 w-4 mr-2" />
+                    )}
+                    Convert
+                  </Button>
+                </div>
+
+                {(isConverting || convertedCode) && (
+                  <div className="mt-4">
+                    {isConverting && <p className="text-sm text-muted-foreground">Converting code...</p>}
+                    {convertedCode && (
+                       <div className="h-full max-h-[300px] mt-2">
+                         <CodeBlock code={convertedCode} language={targetLanguage} className="h-full" />
+                       </div>
+                    )}
+                  </div>
+                )}
+              </AccordionContent>
+          </AccordionItem>
+        </Accordion>
 
       </div>
       <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-end">
