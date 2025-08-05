@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
   code: string;
@@ -41,14 +41,14 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
         aria-label="Copy code"
       >
         {hasCopied ? (
-          <Check className="h-4 w-4 text-accent" />
+          <Check className="h-4 w-4 text-green-500" />
         ) : (
           <Copy className="h-4 w-4" />
         )}
       </Button>
       <SyntaxHighlighter
         language={language}
-        style={atomDark}
+        style={vscDarkPlus}
         customStyle={{ 
             margin: 0, 
             padding: '1rem',
@@ -58,7 +58,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
             backgroundColor: 'hsl(var(--muted)/0.5)',
         }}
         codeTagProps={{
-            className: 'text-sm text-foreground/90'
+            className: 'text-sm'
         }}
         
       >
