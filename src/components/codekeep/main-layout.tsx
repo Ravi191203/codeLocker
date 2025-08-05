@@ -144,16 +144,16 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
           />
         </Sidebar>
         <SidebarInset>
-           <main className="flex-1 h-full overflow-y-auto">
-             <div className="flex h-full items-center justify-center bg-background">
+           <main className="flex-1 h-full overflow-y-auto flex flex-col">
+              <div className="p-2 border-b">
+                <Button variant="ghost" size="icon" asChild>
+                  <SidebarTrigger>
+                    <Menu />
+                  </SidebarTrigger>
+                </Button>
+              </div>
+              <div className="flex-1 flex items-center justify-center bg-background">
                 <div className="text-center text-muted-foreground">
-                    <div className="md:hidden mb-4">
-                        <Button variant="ghost" size="icon" asChild>
-                            <SidebarTrigger>
-                                <Menu />
-                            </SidebarTrigger>
-                        </Button>
-                    </div>
                   <Code2 size={48} className="mx-auto" />
                   <h2 className="mt-4 text-xl font-medium">Select a snippet</h2>
                   <p className="text-sm">Choose a snippet from the list to view its code, or add a new one.</p>
