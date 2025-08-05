@@ -28,6 +28,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
+import { EditSnippetForm } from './edit-snippet-form';
 
 export function MainLayout() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
@@ -35,7 +36,9 @@ export function MainLayout() {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
+  const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
   const isMobile = useIsMobile();
   const [isPending, startTransition] = useTransition();
 
@@ -61,8 +64,12 @@ export function MainLayout() {
   }, [snippets, searchTerm]);
 
   useEffect(() => {
-    setSelectedSnippetId(filteredSnippets[0]?._id || null);
-  }, [filteredSnippets]);
+    if (filteredSnippets.length > 0 && !filteredSnippets.find(s => s._id === selectedSnippetId)) {
+      setSelectedSnippetId(filteredSnippets[0]._id);
+    } else if (filteredSnippets.length === 0) {
+      setSelectedSnippetId(null);
+    }
+  }, [filteredSnippets, selectedSnippetId]);
 
   const selectedSnippet = useMemo(() => {
     if (!selectedSnippetId) return undefined;
@@ -94,8 +101,25 @@ export function MainLayout() {
     setAddDialogOpen(true);
   };
 
+  const handleEditRequest = (id: string) => {
+    const snippet = snippets.find(s => s._id === id);
+    if (snippet) {
+      setSnippetToEdit(snippet);
+      setEditDialogOpen(true);
+    }
+  }
+
   const onSnippetAdded = () => {
     setAddDialogOpen(false);
+    startTransition(async () => {
+      const dbSnippets = await getSnippets();
+      setSnippets(dbSnippets);
+    });
+  }
+  
+  const onSnippetUpdated = () => {
+    setEditDialogOpen(false);
+    setSnippetToEdit(null);
     startTransition(async () => {
       const dbSnippets = await getSnippets();
       setSnippets(dbSnippets);
@@ -145,7 +169,7 @@ export function MainLayout() {
             <main className="flex-1 h-full overflow-y-auto">
               <SnippetView
                 snippet={selectedSnippet}
-                onEdit={() => console.log('Edit snippet')}
+                onEdit={handleEditRequest}
                 onDelete={handleDeleteRequest}
               />
             </main>
@@ -179,6 +203,20 @@ export function MainLayout() {
           <AddSnippetForm
             onSuccess={onSnippetAdded}
           />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Snippet</DialogTitle>
+          </DialogHeader>
+          {snippetToEdit && (
+            <EditSnippetForm
+              snippet={snippetToEdit}
+              onSuccess={onSnippetUpdated}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </SidebarProvider>

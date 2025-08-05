@@ -24,6 +24,19 @@ export async function addSnippet(data: {
   revalidatePath('/');
 }
 
+export async function updateSnippet(id: string, data: {
+    name: string;
+    description: string;
+    code: string;
+    language: string;
+    tags: string;
+}) {
+    await dbConnect();
+    const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);
+    await Snippet.findByIdAndUpdate(id, { ...data, tags: tagsArray });
+    revalidatePath('/');
+}
+
 export async function deleteSnippet(id: string) {
   await dbConnect();
   await Snippet.findByIdAndDelete(id);
