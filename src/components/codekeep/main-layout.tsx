@@ -27,6 +27,7 @@ import { EditSnippetForm } from './edit-snippet-form';
 import { Code2, Menu, Plus, Sparkles, FolderKanban, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
@@ -39,6 +40,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
   const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const refetchSnippets = () => {
      startTransition(async () => {
@@ -87,13 +89,26 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
   const handleDeleteConfirm = () => {
     if (snippetToDelete) {
       startTransition(async () => {
-        await deleteSnippet(snippetToDelete);
-        refetchSnippets();
-        if (selectedSnippet?._id === snippetToDelete) {
-            setSelectedSnippet(null);
+        try {
+          await deleteSnippet(snippetToDelete);
+          toast({
+            title: 'Snippet deleted',
+            description: 'The snippet has been permanently deleted.',
+          });
+          refetchSnippets();
+          if (selectedSnippet?._id === snippetToDelete) {
+              setSelectedSnippet(null);
+          }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "Could not delete the snippet.",
+          });
+        } finally {
+            setDeleteDialogOpen(false);
+            setSnippetToDelete(null);
         }
-        setDeleteDialogOpen(false);
-        setSnippetToDelete(null);
       });
     }
   };
