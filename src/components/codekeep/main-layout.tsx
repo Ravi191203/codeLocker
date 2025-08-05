@@ -129,6 +129,11 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
     }
   }
 
+  const onSnippetSaved = () => {
+    setSelectedSnippet(null);
+    refetchSnippets();
+  };
+
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex h-screen bg-background text-foreground">
@@ -256,6 +261,7 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
                         setSelectedSnippet(null);
                         handleDeleteRequest(selectedSnippet._id);
                       }}
+                      onSave={onSnippetSaved}
                   />
               )}
           </DialogContent>

@@ -5,10 +5,11 @@ import type { Snippet } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
+import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import ReactMarkdown from 'react-markdown';
@@ -21,13 +22,15 @@ interface SnippetViewProps {
   snippet: Snippet | null;
   onEdit: () => void;
   onDelete: () => void;
+  onSave: () => void;
 }
 
-export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
+export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState<string>(languages[0]);
   const { toast } = useToast();
 
@@ -74,6 +77,34 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
       });
     } finally {
       setIsConverting(false);
+    }
+  };
+
+  const handleSaveConvertedCode = async () => {
+    if (!snippet || !convertedCode || !targetLanguage) return;
+    setIsSaving(true);
+    try {
+      await addSnippet({
+        name: `${snippet.name} (converted to ${targetLanguage})`,
+        description: snippet.description,
+        code: convertedCode,
+        language: targetLanguage,
+        tags: snippet.tags.join(','),
+      });
+      toast({
+        title: 'Snippet saved!',
+        description: 'The converted snippet has been added to your collection.',
+      });
+      onSave();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'There was a problem saving the new snippet.',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -195,8 +226,20 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                   <div className="mt-4">
                     {isConverting && <p className="text-sm text-muted-foreground">Converting code...</p>}
                     {convertedCode && (
-                       <div className="h-full max-h-[300px] mt-2">
-                         <CodeBlock code={convertedCode} language={targetLanguage} className="h-full" />
+                       <div className="space-y-2">
+                        <div className="flex justify-end">
+                            <Button variant="outline" size="sm" onClick={handleSaveConvertedCode} disabled={isSaving}>
+                                {isSaving ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Save className="h-4 w-4 mr-2" />
+                                )}
+                                Save as New Snippet
+                            </Button>
+                        </div>
+                         <div className="h-full max-h-[300px] mt-2">
+                           <CodeBlock code={convertedCode} language={targetLanguage} className="h-full" />
+                         </div>
                        </div>
                     )}
                   </div>
