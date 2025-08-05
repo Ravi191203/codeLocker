@@ -35,11 +35,11 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => onEdit(snippet._id)}>
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-5 w-5" />
             <span className="sr-only">Edit Snippet</span>
           </Button>
           <Button variant="ghost" size="icon" onClick={() => onDelete(snippet._id)} className="hover:bg-destructive/10 hover:text-destructive">
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="h-5 w-5" />
              <span className="sr-only">Delete Snippet</span>
           </Button>
         </div>
