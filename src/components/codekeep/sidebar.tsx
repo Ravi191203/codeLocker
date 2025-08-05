@@ -24,7 +24,7 @@ interface AppSidebarProps {
   onAddSnippet: () => void;
   snippets: Snippet[];
   onSelectSnippet: (snippet: Snippet) => void;
-  selectedSnippet: Snippet | null;
+  selectedSnippetId: string | null;
 }
 
 const languageExtensions: { [key: string]: string } = {
@@ -66,7 +66,7 @@ export function AppSidebar({
   onAddSnippet,
   snippets,
   onSelectSnippet,
-  selectedSnippet,
+  selectedSnippetId,
 }: AppSidebarProps) {
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
@@ -112,7 +112,7 @@ export function AppSidebar({
                   className={cn(
                     "w-full text-left p-2 rounded-md text-sm flex items-start gap-3",
                     "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                    selectedSnippet?._id === snippet._id && "bg-sidebar-accent text-sidebar-accent-foreground"
+                    selectedSnippetId === snippet._id && "bg-sidebar-accent text-sidebar-accent-foreground"
                   )}
                 >
                   <Code className="w-4 h-4 mt-0.5 flex-shrink-0" />
