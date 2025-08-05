@@ -19,7 +19,11 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
       <div className="flex h-full items-center justify-center bg-background">
         <div className="text-center text-muted-foreground">
             <div className="md:hidden mb-4">
-                <SidebarTrigger />
+                <Button variant="ghost" size="icon" asChild>
+                    <SidebarTrigger>
+                        <Menu />
+                    </SidebarTrigger>
+                </Button>
             </div>
           <Code2 size={48} className="mx-auto" />
           <h2 className="mt-4 text-xl font-medium">Select a snippet</h2>
@@ -33,7 +37,11 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
     <div className="h-full flex flex-col bg-background">
        <header className="flex-shrink-0 border-b p-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <SidebarTrigger className="md:hidden" />
+          <Button variant="ghost" size="icon" className="md:hidden" asChild>
+            <SidebarTrigger>
+              <Menu />
+            </SidebarTrigger>
+          </Button>
           <h2 className="text-lg font-semibold truncate">{snippet.name}</h2>
         </div>
         <div className="flex items-center gap-2">

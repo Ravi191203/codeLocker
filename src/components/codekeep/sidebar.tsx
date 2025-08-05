@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Code, FileCode, Plus, Search } from 'lucide-react';
+import { Code, FileCode, Plus, Search, Menu } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { Snippet } from '@/lib/data';
 import { cn } from '@/lib/utils';
@@ -30,7 +30,11 @@ export function AppSidebar({
       <div className="p-4 space-y-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold tracking-tight">CodeKeep</h1>
-            <SidebarTrigger className="md:hidden" />
+            <Button variant="ghost" size="icon" className="md:hidden" asChild>
+              <SidebarTrigger>
+                <Menu />
+              </SidebarTrigger>
+            </Button>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
