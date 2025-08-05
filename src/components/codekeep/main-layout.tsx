@@ -7,7 +7,6 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { AppSidebar } from './sidebar';
-import { SnippetList } from './snippet-list';
 import { SnippetView } from './snippet-view';
 import { type Snippet } from '@/lib/data';
 import {
@@ -24,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
+import { SnippetList } from './snippet-list';
 
 export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
@@ -43,6 +43,15 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
     });
   }
 
+  useEffect(() => {
+    if (snippets.length > 0 && !selectedSnippet) {
+      setSelectedSnippet(snippets[0]);
+    }
+     if (snippets.length === 0) {
+      setSelectedSnippet(null);
+    }
+  }, [snippets, selectedSnippet]);
+  
   const filteredSnippets = useMemo(() => {
     return snippets
       .filter((snippet) => {
@@ -71,6 +80,9 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
       startTransition(async () => {
         await deleteSnippet(snippetToDelete);
         refetchSnippets();
+        if (selectedSnippet?._id === snippetToDelete) {
+            setSelectedSnippet(null);
+        }
         setDeleteDialogOpen(false);
         setSnippetToDelete(null);
       });
@@ -95,6 +107,16 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
     setEditDialogOpen(false);
     setSnippetToEdit(null);
     refetchSnippets();
+     if (snippetToEdit) {
+        startTransition(async () => {
+            const newSnippets = await getSnippets();
+            setSnippets(newSnippets);
+            const updatedSnippet = newSnippets.find((s: Snippet) => s._id === snippetToEdit._id);
+            if (updatedSnippet) {
+                setSelectedSnippet(updatedSnippet);
+            }
+        });
+    }
   }
 
   return (
@@ -105,13 +127,15 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
             onAddSnippet={handleAddSnippet}
+            snippets={filteredSnippets}
+            onSelectSnippet={handleSelectSnippet}
+            selectedSnippet={selectedSnippet}
           />
         </Sidebar>
         <SidebarInset>
-           <main className="flex-1 h-full overflow-y-auto p-4 md:p-6">
-              <SnippetList
-                snippets={filteredSnippets}
-                onSelectSnippet={handleSelectSnippet}
+           <main className="flex-1 h-full overflow-y-auto">
+              <SnippetView
+                snippet={selectedSnippet}
                 onEdit={handleEditRequest}
                 onDelete={handleDeleteRequest}
               />
@@ -160,19 +184,6 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
           )}
         </DialogContent>
       </Dialog>
-       
-       <Dialog open={!!selectedSnippet} onOpenChange={(isOpen) => !isOpen && setSelectedSnippet(null)}>
-        <DialogContent className="max-w-4xl h-[90vh]">
-           {selectedSnippet && (
-             <SnippetView
-                snippet={selectedSnippet}
-                onEdit={() => handleEditRequest(selectedSnippet)}
-                onDelete={() => handleDeleteRequest(selectedSnippet._id)}
-              />
-           )}
-        </DialogContent>
-       </Dialog>
-
     </SidebarProvider>
   );
 }

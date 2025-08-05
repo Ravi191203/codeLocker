@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, Code2 } from 'lucide-react';
-import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 
 interface SnippetViewProps {
-  snippet: Snippet | undefined;
-  onEdit: (id: string) => void;
+  snippet: Snippet | null;
+  onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
 }
 
@@ -28,11 +27,21 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
 
   return (
     <div className="h-full flex flex-col">
-       <DialogHeader className="flex-shrink-0 border-b p-4 h-16">
+       <header className="flex-shrink-0 border-b p-4 h-16 flex items-center justify-between">
         <div>
-          <DialogTitle className="text-lg">{snippet.name}</DialogTitle>
+          <h2 className="text-lg font-semibold">{snippet.name}</h2>
         </div>
-      </DialogHeader>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => onEdit(snippet)}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button variant="destructive" size="sm" onClick={() => onDelete(snippet._id)}>
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        </div>
+      </header>
       <div className="p-4 flex-grow overflow-y-auto space-y-4">
         <div>
           <h3 className="font-semibold text-sm mb-2">Description</h3>
@@ -53,23 +62,11 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         
         <div className="flex-grow flex flex-col min-h-[200px]">
            <h3 className="font-semibold text-sm mb-2">Code</h3>
-           <div className="h-full max-h-[calc(90vh-300px)]">
+           <div className="h-full max-h-[calc(100vh - 300px)]">
              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
            </div>
         </div>
       </div>
-       <DialogFooter className="border-t p-4 justify-end flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => onEdit(snippet._id)}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-          <Button variant="destructive" onClick={() => onDelete(snippet._id)}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
-        </div>
-      </DialogFooter>
     </div>
   );
 }
