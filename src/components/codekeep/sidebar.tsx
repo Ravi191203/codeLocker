@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,37 @@ interface AppSidebarProps {
   snippets: Snippet[];
   onSelectSnippet: (snippet: Snippet) => void;
   selectedSnippet: Snippet | null;
+}
+
+const languageExtensions: { [key: string]: string } = {
+  javascript: '.js',
+  python: '.py',
+  html: '.html',
+  css: '.css',
+  sql: '.sql',
+  typescript: '.ts',
+  java: '.java',
+  csharp: '.cs',
+  cpp: '.cpp',
+  php: '.php',
+  ruby: '.rb',
+  go: '.go',
+  swift: '.swift',
+  kotlin: '.kt',
+  rust: '.rs',
+  bash: '.sh',
+  powershell: '.ps1',
+  json: '.json',
+  yaml: '.yaml',
+  markdown: '.md',
+};
+
+const truncateName = (name: string, wordLimit: number) => {
+    const words = name.split(' ');
+    if (words.length > wordLimit) {
+        return words.slice(0, wordLimit).join(' ') + '...';
+    }
+    return name;
 }
 
 export function AppSidebar({
@@ -63,8 +95,11 @@ export function AppSidebar({
                 >
                   <Code className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold truncate">{snippet.name}</p>
-                    <p className="text-xs text-muted-foreground">{snippet.language}</p>
+                    <p className="font-semibold truncate">{truncateName(snippet.name, 4)}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {snippet.language}
+                        <span className="ml-1">{languageExtensions[snippet.language] || ''}</span>
+                    </p>
                   </div>
                 </button>
               </li>
