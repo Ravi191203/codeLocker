@@ -11,6 +11,9 @@ import { explainCode } from '@/ai/flows/explain-code';
 import { useToast } from '@/hooks/use-toast';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -88,7 +91,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         </div>
 
         {(isExplaining || explanation) && (
-          <Accordion type="single" collapsible defaultValue="item-1">
+          <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
              <AccordionItem value="item-1">
                 <AccordionTrigger>
                    <h3 className="font-semibold text-sm text-muted-foreground">AI Explanation</h3>
@@ -97,12 +100,34 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                   {isExplaining && <p className="text-sm text-muted-foreground">Generating explanation...</p>}
                   {explanation && (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown
-                         components={{
-                           pre: ({node, ...props}) => <div className="my-2 bg-muted/50 p-3 rounded-lg"><pre {...props} /></div>,
-                           code: ({node, ...props}) => <code className="bg-muted/50 rounded-md px-1" {...props} />,
-                         }}
-                      >{explanation}</ReactMarkdown>
+                       <ReactMarkdown
+                        components={{
+                          code({ node, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            return match ? (
+                              <SyntaxHighlighter
+                                style={vscDarkPlus}
+                                language={match[1]}
+                                PreTag="div"
+                                customStyle={{
+                                  backgroundColor: 'hsl(var(--muted)/0.5)',
+                                  borderRadius: '0.5rem',
+                                  padding: '1rem',
+                                  margin: '1rem 0',
+                                }}
+                              >
+                                {String(children).replace(/\n$/, '')}
+                              </SyntaxHighlighter>
+                            ) : (
+                              <code className="bg-muted/50 rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                        }}
+                      >
+                        {explanation}
+                      </ReactMarkdown>
                     </div>
                   )}
                 </AccordionContent>
