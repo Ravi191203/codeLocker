@@ -1,11 +1,16 @@
 "use client";
 
+import React, { useState } from 'react';
 import type { Snippet } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2 } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { explainCode } from '@/ai/flows/explain-code';
+import { useToast } from '@/hooks/use-toast';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import ReactMarkdown from 'react-markdown';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -14,9 +19,33 @@ interface SnippetViewProps {
 }
 
 export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
+  const [explanation, setExplanation] = useState<string | null>(null);
+  const [isExplaining, setIsExplaining] = useState(false);
+  const { toast } = useToast();
+
   if (!snippet) {
     return null; // Don't render anything if no snippet is selected
   }
+  
+  const handleExplainCode = async () => {
+    if (!snippet) return;
+    setIsExplaining(true);
+    setExplanation(null);
+    try {
+      const result = await explainCode({ code: snippet.code, language: snippet.language });
+      setExplanation(result.explanation);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: "There was a problem generating the explanation.",
+      });
+    } finally {
+      setIsExplaining(false);
+    }
+  };
+
 
   return (
     <>
@@ -42,11 +71,45 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
         </div>
         
         <div className="flex-grow flex flex-col min-h-[200px]">
-           <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Code</h3>
-           <div className="h-full max-h-[calc(100vh-320px)]">
+           <div className="flex items-center justify-between mb-2">
+             <h3 className="font-semibold text-sm text-muted-foreground">Code</h3>
+             <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
+                {isExplaining ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                Explain Code
+              </Button>
+           </div>
+           <div className="h-full max-h-[calc(100vh-450px)]">
              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
            </div>
         </div>
+
+        {(isExplaining || explanation) && (
+          <Accordion type="single" collapsible defaultValue="item-1">
+             <AccordionItem value="item-1">
+                <AccordionTrigger>
+                   <h3 className="font-semibold text-sm text-muted-foreground">AI Explanation</h3>
+                </AccordionTrigger>
+                <AccordionContent>
+                  {isExplaining && <p className="text-sm text-muted-foreground">Generating explanation...</p>}
+                  {explanation && (
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown
+                         components={{
+                           pre: ({node, ...props}) => <div className="my-2 bg-muted/50 p-3 rounded-lg"><pre {...props} /></div>,
+                           code: ({node, ...props}) => <code className="bg-muted/50 rounded-md px-1" {...props} />,
+                         }}
+                      >{explanation}</ReactMarkdown>
+                    </div>
+                  )}
+                </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+
       </div>
       <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-end">
         <div className="flex items-center gap-2">
