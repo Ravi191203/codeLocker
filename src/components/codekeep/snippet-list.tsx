@@ -23,7 +23,7 @@ export function SnippetList({
       <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
         <FileCode className="w-16 h-16 mb-4" />
         <h3 className="text-lg font-semibold">No Snippets Found</h3>
-        <p className="text-sm">Try a different search term or select another folder.</p>
+        <p className="text-sm">Try a different search term or add a new snippet.</p>
       </div>
     );
   }
@@ -33,11 +33,11 @@ export function SnippetList({
       <div className="p-2 space-y-2">
         {snippets.map((snippet) => (
           <Card
-            key={snippet.id}
-            onClick={() => onSelectSnippet(snippet.id)}
+            key={snippet._id}
+            onClick={() => onSelectSnippet(snippet._id)}
             className={cn(
               'cursor-pointer transition-colors hover:bg-accent/10',
-              selectedSnippetId === snippet.id
+              selectedSnippetId === snippet._id
                 ? 'bg-accent/20 border-accent'
                 : 'border-transparent'
             )}

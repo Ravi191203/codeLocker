@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useTransition } from 'react';
 import {
   SidebarProvider,
   Sidebar,
@@ -10,7 +10,7 @@ import {
 import { AppSidebar } from './sidebar';
 import { SnippetList } from './snippet-list';
 import { SnippetView } from './snippet-view';
-import { folders, snippets as allSnippets, type Snippet } from '@/lib/data';
+import { folders, type Snippet } from '@/lib/data';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,19 +21,31 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '../ui/button';
 import { PanelLeft } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '../ui/sheet';
+import { getSnippets, deleteSnippet } from '@/app/actions';
+import { AddSnippetForm } from './add-snippet-form';
 
 export function MainLayout() {
-  const [snippets, setSnippets] = useState<Snippet[]>(allSnippets);
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(folders[0]?.id || null);
   const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
   const isMobile = useIsMobile();
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    startTransition(async () => {
+      const dbSnippets = await getSnippets();
+      setSnippets(dbSnippets);
+    });
+  }, []);
 
   const filteredSnippets = useMemo(() => {
     return snippets
@@ -44,19 +56,19 @@ export function MainLayout() {
         return (
           snippet.name.toLowerCase().includes(lowerSearch) ||
           snippet.code.toLowerCase().includes(lowerSearch) ||
-          snippet.description.toLowerCase().includes(lowerSearch) ||
+          (snippet.description && snippet.description.toLowerCase().includes(lowerSearch)) ||
           snippet.tags.some((tag) => tag.toLowerCase().includes(lowerSearch))
         );
       });
   }, [snippets, selectedFolderId, searchTerm]);
 
   useEffect(() => {
-    setSelectedSnippetId(filteredSnippets[0]?.id || null);
+    setSelectedSnippetId(filteredSnippets[0]?._id || null);
   }, [filteredSnippets]);
 
   const selectedSnippet = useMemo(() => {
     if (!selectedSnippetId) return undefined;
-    return snippets.find((s) => s.id === selectedSnippetId);
+    return snippets.find((s) => s._id === selectedSnippetId);
   }, [selectedSnippetId, snippets]);
 
   const handleSelectSnippet = (id: string) => {
@@ -70,16 +82,27 @@ export function MainLayout() {
 
   const handleDeleteConfirm = () => {
     if (snippetToDelete) {
-      setSnippets((prev) => prev.filter((s) => s.id !== snippetToDelete));
+      startTransition(async () => {
+        await deleteSnippet(snippetToDelete);
+        const dbSnippets = await getSnippets();
+        setSnippets(dbSnippets);
+        setDeleteDialogOpen(false);
+        setSnippetToDelete(null);
+      });
     }
-    setDeleteDialogOpen(false);
-    setSnippetToDelete(null);
   };
 
   const handleAddSnippet = () => {
-    // This is a placeholder for a real implementation
-    console.log('Add new snippet');
+    setAddDialogOpen(true);
   };
+
+  const onSnippetAdded = () => {
+    setAddDialogOpen(false);
+    startTransition(async () => {
+      const dbSnippets = await getSnippets();
+      setSnippets(dbSnippets);
+    });
+  }
 
   const MobileSnippetList = () => (
     <Sheet>
@@ -145,12 +168,25 @@ export function MainLayout() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isPending ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Snippet</DialogTitle>
+          </DialogHeader>
+          <AddSnippetForm
+            folders={folders}
+            currentFolderId={selectedFolderId}
+            onSuccess={onSnippetAdded}
+          />
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
