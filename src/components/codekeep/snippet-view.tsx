@@ -33,7 +33,8 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
   const handleExplainCode = async () => {
     if (!snippet) return;
     setIsExplaining(true);
-    setExplanation(null);
+    // Don't clear old explanation for better UX
+    // setExplanation(null); 
     try {
       const result = await explainCode({ code: snippet.code, language: snippet.language });
       setExplanation(result.explanation);
@@ -55,7 +56,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
       <DialogHeader>
         <DialogTitle className="truncate">{snippet.name}</DialogTitle>
       </DialogHeader>
-      <div className="p-6 flex-grow overflow-y-auto space-y-6">
+      <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         <div>
           <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Description</h3>
           <p className="text-sm">{snippet.description}</p>
@@ -73,7 +74,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
           </div>
         </div>
         
-        <div className="flex-grow flex flex-col min-h-[200px]">
+        <div>
            <div className="flex items-center justify-between mb-2">
              <h3 className="font-semibold text-sm text-muted-foreground">Code</h3>
              <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
@@ -85,7 +86,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                 Explain Code
               </Button>
            </div>
-           <div className="h-full max-h-[calc(100vh-450px)]">
+           <div className="h-full max-h-[300px]">
              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
            </div>
         </div>
@@ -97,7 +98,7 @@ export function SnippetView({ snippet, onEdit, onDelete }: SnippetViewProps) {
                    <h3 className="font-semibold text-sm text-muted-foreground">AI Explanation</h3>
                 </AccordionTrigger>
                 <AccordionContent>
-                  {isExplaining && <p className="text-sm text-muted-foreground">Generating explanation...</p>}
+                  {isExplaining && !explanation && <p className="text-sm text-muted-foreground">Generating explanation...</p>}
                   {explanation && (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
                        <ReactMarkdown
