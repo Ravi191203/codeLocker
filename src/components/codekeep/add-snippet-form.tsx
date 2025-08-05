@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { languages } from '@/lib/data';
-import { useTransition, useState } from 'react';
+import { useTransition, useState, useEffect, useCallback } from 'react';
 import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { DialogFooter } from '../ui/dialog';
@@ -41,6 +41,17 @@ type AddSnippetFormProps = {
   onSuccess: () => void;
 };
 
+// Debounce function
+function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<F>): Promise<ReturnType<F>> =>
+    new Promise(resolve => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => resolve(func(...args)), waitFor);
+    });
+}
+
+
 export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -57,33 +68,26 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
     },
   });
 
-  const handleAutoFill = () => {
-    const code = form.getValues("code");
-    const language = form.getValues("language");
+  const codeValue = form.watch("code");
+  const languageValue = form.watch("language");
 
-    if (!code || code.length < 10) {
-      toast({
-        variant: "destructive",
-        title: "Code is too short",
-        description: "Please enter at least 10 characters of code to use the AI assistant.",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    startTransition(async () => {
+  const debouncedGenerateDetails = useCallback(
+    debounce(async (code: string, language: string) => {
+      if (code.length < 20) return; // Don't run on very short code
+      setIsGenerating(true);
       try {
         const result = await generateSnippetDetails({ code, language });
         if (result) {
           form.setValue("name", result.name, { shouldValidate: true });
           form.setValue("description", result.description, { shouldValidate: true });
           form.setValue("tags", result.tags.join(', '), { shouldValidate: true });
-           toast({
+          toast({
             title: "AI Assistant finished!",
             description: "The name, description, and tags have been filled out.",
           });
         }
       } catch (error) {
+        console.error(error);
         toast({
           variant: "destructive",
           title: "Uh oh! Something went wrong.",
@@ -92,8 +96,18 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
       } finally {
         setIsGenerating(false);
       }
-    });
-  };
+    }, 1000), // 1 second debounce delay
+    [form, toast]
+  );
+  
+  useEffect(() => {
+    // Check if name/desc/tags are already filled. If so, don't auto-generate.
+    const hasExistingDetails = form.getValues('name') || form.getValues('description') || form.getValues('tags');
+    if (codeValue && !hasExistingDetails) {
+       debouncedGenerateDetails(codeValue, languageValue);
+    }
+  }, [codeValue, languageValue, debouncedGenerateDetails, form]);
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     startTransition(async () => {
@@ -149,15 +163,17 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
             name="code"
             render={({ field }) => (
               <FormItem>
-                <div className="flex items-center justify-between">
+                 <div className="flex items-center justify-between">
                   <FormLabel>Code</FormLabel>
-                  <Button type="button" variant="ghost" size="sm" onClick={handleAutoFill} disabled={isGenerating}>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    {isGenerating ? "Generating..." : "Auto-fill with AI"}
-                  </Button>
+                  {isGenerating && (
+                     <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 animate-pulse" />
+                        <span>Generating details with AI...</span>
+                    </div>
+                  )}
                 </div>
                 <FormControl>
-                  <Textarea placeholder="Paste your code here" className="min-h-[200px] font-mono" {...field} />
+                  <Textarea placeholder="Paste your code here and the AI will do the rest!" className="min-h-[200px] font-mono" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
