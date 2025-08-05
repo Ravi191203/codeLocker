@@ -5,6 +5,7 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarInset,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { AppSidebar } from './sidebar';
 import { SnippetView } from './snippet-view';
@@ -23,9 +24,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { Code2, Menu } from 'lucide-react';
+import { Code2, Menu, Plus, Sparkles, FolderKanban, Search } from 'lucide-react';
 import { Button } from '../ui/button';
-import { SidebarTrigger } from '../ui/sidebar';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
@@ -152,11 +153,48 @@ export function MainLayout({ initialSnippets }: { initialSnippets: Snippet[] }) 
                   </SidebarTrigger>
                 </Button>
               </div>
-              <div className="flex-1 flex items-center justify-center bg-background">
-                <div className="text-center text-muted-foreground">
-                  <Code2 size={48} className="mx-auto" />
-                  <h2 className="mt-4 text-xl font-medium">Select a snippet</h2>
-                  <p className="text-sm">Choose a snippet from the list to view its code, or add a new one.</p>
+              <div className="flex-1 flex items-center justify-center bg-background p-4 md:p-8">
+                <div className="max-w-4xl mx-auto text-center">
+                    <Card className="bg-card/50 border-dashed">
+                        <CardHeader>
+                            <CardTitle className="text-2xl md:text-3xl font-bold tracking-tight">Welcome to CodeKeep</CardTitle>
+                        </CardHeader>
+                        <CardContent className="text-muted-foreground space-y-8">
+                             <p className="max-w-2xl mx-auto">
+                                Your personal AI-powered snippet manager. Store, search, and organize your code effortlessly.
+                                Click "New Snippet" to get started.
+                             </p>
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                                <div className="flex items-start gap-4">
+                                    <Sparkles className="w-8 h-8 text-primary flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-semibold">AI-Assisted Creation</h3>
+                                        <p className="text-sm text-muted-foreground">Automatically generate names, descriptions, and tags for your snippets.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <FolderKanban className="w-8 h-8 text-primary flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-semibold">Easy Organization</h3>
+                                        <p className="text-sm text-muted-foreground">Categorize snippets by language and tags for quick retrieval.</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start gap-4">
+                                    <Search className="w-8 h-8 text-primary flex-shrink-0" />
+                                    <div>
+                                        <h3 className="font-semibold">Powerful Search</h3>
+                                        <p className="text-sm text-muted-foreground">Instantly find snippets by name, content, or tags.</p>
+                                    </div>
+                                </div>
+                             </div>
+                             <div>
+                                <Button onClick={handleAddSnippet}>
+                                    <Plus className="mr-2" />
+                                    Add Your First Snippet
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
               </div>
             </main>
