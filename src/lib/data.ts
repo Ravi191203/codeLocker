@@ -7,6 +7,8 @@ export type Snippet = {
   description: string;
   createdAt: Date;
   updatedAt: Date;
+  isPublic: boolean;
+  shareId: string | null;
 };
 
 export type SnippetVersion = {

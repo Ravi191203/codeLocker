@@ -5,6 +5,9 @@ import Snippet from '@/models/Snippet';
 import SnippetVersion from '@/models/SnippetVersion';
 import { revalidatePath } from 'next/cache';
 import mongoose from 'mongoose';
+import { customAlphabet } from 'nanoid';
+
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 12);
 
 export async function getSnippets() {
   await dbConnect();
@@ -122,4 +125,33 @@ export async function restoreSnippetVersion(versionId: string) {
 
     revalidatePath('/');
     revalidatePath(`/snippet/${version.snippetId}/history`);
+    revalidatePath(`/s/${currentSnippet.shareId}`);
+}
+
+export async function updateSnippetSharing(id: string, isPublic: boolean) {
+    await dbConnect();
+    const snippet = await Snippet.findById(id);
+    if (!snippet) {
+        throw new Error('Snippet not found');
+    }
+
+    let shareId = snippet.shareId;
+    if (isPublic && !shareId) {
+        shareId = nanoid();
+    }
+
+    const updatedSnippet = await Snippet.findByIdAndUpdate(id, { isPublic, shareId }, { new: true });
+    
+    revalidatePath(`/s/${shareId}`);
+    
+    return JSON.parse(JSON.stringify(updatedSnippet));
+}
+
+export async function getSharedSnippet(shareId: string) {
+    await dbConnect();
+    const snippet = await Snippet.findOne({ shareId, isPublic: true });
+    if (!snippet) {
+        return null;
+    }
+    return JSON.parse(JSON.stringify(snippet));
 }

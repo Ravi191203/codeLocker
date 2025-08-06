@@ -6,6 +6,8 @@ export interface ISnippet extends Document {
   code: string;
   language: string;
   tags: string[];
+  isPublic: boolean;
+  shareId: string;
 }
 
 const SnippetSchema: Schema = new Schema(
@@ -15,6 +17,8 @@ const SnippetSchema: Schema = new Schema(
     code: { type: String, required: true },
     language: { type: String, required: true },
     tags: { type: [String], default: [] },
+    isPublic: { type: Boolean, default: false },
+    shareId: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 );

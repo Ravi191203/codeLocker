@@ -1,17 +1,17 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import type { Bug, Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
-import { addSnippet, getSnippetVersions, restoreSnippetVersion } from '@/app/actions';
+import { addSnippet, getSnippetVersions, restoreSnippetVersion, updateSnippetSharing } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -22,16 +22,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { ScrollArea } from '../ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Switch } from '../ui/switch';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
   onEdit: () => void;
   onDelete: () => void;
   onSave: () => void;
-  onClose: () => void;
 }
 
-export function SnippetView({ snippet, onEdit, onDelete, onSave, onClose }: SnippetViewProps) {
+export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave }: SnippetViewProps) {
+  const [snippet, setSnippet] = useState(initialSnippet);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
@@ -43,16 +47,18 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave, onClose }: Snip
   const [versions, setVersions] = useState<SnippetVersion[]>([]);
   const [isFetchingVersions, setIsFetchingVersions] = useState(false);
   const [isRestoring, setIsRestoring] = useState<string | null>(null);
+  const [isSharing, startSharingTransition] = useTransition();
+  const [hasCopied, setHasCopied] = useState(false);
 
   const { toast } = useToast();
 
   useEffect(() => {
-    // Reset state when snippet changes
+    setSnippet(initialSnippet);
     setExplanation(null);
     setConvertedCode(null);
     setBugs(null);
     setVersions([]);
-  }, [snippet]);
+  }, [initialSnippet]);
 
   if (!snippet) {
     return null;
@@ -186,11 +192,77 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave, onClose }: Snip
     }
   };
 
+  const handleSharingChange = (isPublic: boolean) => {
+    startSharingTransition(async () => {
+        try {
+            const updatedSnippet = await updateSnippetSharing(snippet._id, isPublic);
+            setSnippet(updatedSnippet);
+            toast({
+                title: isPublic ? 'Sharing Enabled' : 'Sharing Disabled',
+                description: isPublic ? 'Your snippet is now public.' : 'Your snippet is now private.',
+            });
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Uh oh! Something went wrong.',
+                description: 'Could not update sharing settings.',
+            });
+        }
+    });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setHasCopied(true);
+      setTimeout(() => {
+        setHasCopied(false);
+      }, 2000);
+    });
+  };
+
+  const shareUrl = snippet.isPublic && snippet.shareId ? `${window.location.origin}/s/${snippet.shareId}` : '';
 
   return (
     <>
       <DialogHeader className="p-6 pb-0">
-        <DialogTitle className="truncate">{snippet.name}</DialogTitle>
+        <div className="flex justify-between items-center">
+            <DialogTitle className="truncate">{snippet.name}</DialogTitle>
+             <Popover>
+                <PopoverTrigger asChild>
+                <Button variant="outline" size="sm"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96">
+                <div className="grid gap-4">
+                    <div className="space-y-2">
+                    <h4 className="font-medium leading-none">Share Snippet</h4>
+                    <p className="text-sm text-muted-foreground">
+                        Anyone with the link can view this snippet.
+                    </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="sharing-switch"
+                            checked={snippet.isPublic}
+                            onCheckedChange={handleSharingChange}
+                            disabled={isSharing}
+                        />
+                        <Label htmlFor="sharing-switch">{isSharing ? 'Updating...' : (snippet.isPublic ? 'Sharing is On' : 'Sharing is Off')}</Label>
+                    </div>
+                    {snippet.isPublic && shareUrl && (
+                    <div className="space-y-2">
+                        <Label htmlFor="link">Public Link</Label>
+                        <div className="flex items-center gap-2">
+                            <Input id="link" value={shareUrl} readOnly className="h-8" />
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => copyToClipboard(shareUrl)}>
+                                {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                            </Button>
+                        </div>
+                    </div>
+                    )}
+                </div>
+                </PopoverContent>
+            </Popover>
+        </div>
       </DialogHeader>
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         <div>
@@ -407,17 +479,14 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave, onClose }: Snip
         </Tabs>
       </div>
       <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-between">
-         <Button variant="ghost" size="sm" onClick={onClose}>
-            Close
-          </Button>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
           <Button variant="destructive" size="sm" onClick={onDelete}>
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
+          </Button>
+           <Button variant="outline" size="sm" onClick={onEdit}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
           </Button>
         </div>
       </DialogFooter>
