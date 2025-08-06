@@ -2,14 +2,15 @@
 "use client";
 
 import React, { useState } from 'react';
-import type { Snippet } from '@/lib/data';
+import type { Bug, Snippet } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages, Save } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
+import { findBugs } from '@/ai/flows/find-bugs';
 import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -18,6 +19,8 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { languages } from '@/lib/data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -33,6 +36,9 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
   const [isConverting, setIsConverting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState<string>(languages[0]);
+  const [bugs, setBugs] = useState<Bug[] | null>(null);
+  const [isFindingBugs, setIsFindingBugs] = useState(false);
+
   const { toast } = useToast();
 
   if (!snippet) {
@@ -109,6 +115,26 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
     }
   };
 
+  const handleFindBugs = async () => {
+    if (!snippet) return;
+    setIsFindingBugs(true);
+    setBugs(null);
+    try {
+      const result = await findBugs({ code: snippet.code, language: snippet.language });
+      setBugs(result.bugs);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'There was a problem finding bugs.',
+      });
+    } finally {
+      setIsFindingBugs(false);
+    }
+  };
+
+
   return (
     <>
       <DialogHeader>
@@ -133,7 +159,7 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
         </div>
         
         <Tabs defaultValue="code" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid grid-cols-4">
             <TabsTrigger value="code">Code</TabsTrigger>
             <TabsTrigger value="explanation">
               <Sparkles className="h-4 w-4 mr-2" />
@@ -142,6 +168,10 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
             <TabsTrigger value="converter">
               <Languages className="h-4 w-4 mr-2" />
               AI Code Converter
+            </TabsTrigger>
+            <TabsTrigger value="bug-finder">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              AI Bug Finder
             </TabsTrigger>
           </TabsList>
           <TabsContent value="code">
@@ -241,6 +271,41 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
                 )}
              </div>
           </TabsContent>
+          <TabsContent value="bug-finder">
+            <div className="p-4 border rounded-md space-y-4">
+              <Button variant="outline" size="sm" onClick={handleFindBugs} disabled={isFindingBugs}>
+                {isFindingBugs ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                )}
+                {bugs ? 'Scan Again' : 'Find Bugs'}
+              </Button>
+              {isFindingBugs && <p className="text-sm text-muted-foreground mt-4">Scanning for bugs...</p>}
+              {bugs && bugs.length === 0 && (
+                 <Alert className="mt-4">
+                    <ShieldCheck className="h-4 w-4" />
+                    <AlertTitle>No Bugs Found!</AlertTitle>
+                    <AlertDescription>
+                        The AI assistant did not find any obvious bugs in this snippet.
+                    </AlertDescription>
+                </Alert>
+              )}
+              {bugs && bugs.length > 0 && (
+                <ScrollArea className="mt-4 h-[250px] space-y-4">
+                    <div className="space-y-4 pr-4">
+                    {bugs.map((bug, index) => (
+                        <Alert key={index} variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertTitle>Line {bug.line}: {bug.bug}</AlertTitle>
+                            <AlertDescription>{bug.suggestion}</AlertDescription>
+                        </Alert>
+                    ))}
+                    </div>
+                </ScrollArea>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
       <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-end">
@@ -258,6 +323,3 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
     </>
   );
 }
-
-
-    

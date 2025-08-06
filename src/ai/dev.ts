@@ -2,3 +2,4 @@
 import './flows/generate-snippet-details';
 import './flows/explain-code';
 import './flows/convert-code';
+import './flows/find-bugs';

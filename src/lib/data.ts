@@ -9,6 +9,12 @@ export type Snippet = {
   updatedAt: Date;
 };
 
+export type Bug = {
+  line: number;
+  bug: string;
+  suggestion: string;
+};
+
 export const languages = [
   'javascript',
   'python',
