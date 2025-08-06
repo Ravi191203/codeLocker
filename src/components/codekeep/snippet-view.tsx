@@ -1,17 +1,17 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import type { Bug, Snippet } from '@/lib/data';
+import React, { useState, useEffect } from 'react';
+import type { Bug, Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo } from 'lucide-react';
 import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
-import { addSnippet } from '@/app/actions';
+import { addSnippet, getSnippetVersions, restoreSnippetVersion } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -21,15 +21,17 @@ import { languages } from '@/lib/data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { ScrollArea } from '../ui/scroll-area';
+import { formatDistanceToNow } from 'date-fns';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
   onEdit: () => void;
   onDelete: () => void;
   onSave: () => void;
+  onClose: () => void;
 }
 
-export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewProps) {
+export function SnippetView({ snippet, onEdit, onDelete, onSave, onClose }: SnippetViewProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
@@ -38,8 +40,19 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
   const [targetLanguage, setTargetLanguage] = useState<string>(languages[0]);
   const [bugs, setBugs] = useState<Bug[] | null>(null);
   const [isFindingBugs, setIsFindingBugs] = useState(false);
+  const [versions, setVersions] = useState<SnippetVersion[]>([]);
+  const [isFetchingVersions, setIsFetchingVersions] = useState(false);
+  const [isRestoring, setIsRestoring] = useState<string | null>(null);
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Reset state when snippet changes
+    setExplanation(null);
+    setConvertedCode(null);
+    setBugs(null);
+    setVersions([]);
+  }, [snippet]);
 
   if (!snippet) {
     return null;
@@ -134,10 +147,49 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
     }
   };
 
+  const handleFetchVersions = async () => {
+    if (!snippet) return;
+    setIsFetchingVersions(true);
+    try {
+        const result = await getSnippetVersions(snippet._id);
+        setVersions(result);
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Uh oh! Something went wrong.',
+            description: 'Could not fetch version history.',
+        });
+    } finally {
+        setIsFetchingVersions(false);
+    }
+  };
+
+  const handleRestoreVersion = async (versionId: string) => {
+    setIsRestoring(versionId);
+    try {
+        await restoreSnippetVersion(versionId);
+        toast({
+            title: 'Snippet Restored!',
+            description: 'The snippet has been restored to the selected version.',
+        });
+        onSave(); // This will trigger a refetch and update the view
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Uh oh! Something went wrong.',
+            description: 'Could not restore the selected version.',
+        });
+    } finally {
+        setIsRestoring(null);
+    }
+  };
+
 
   return (
     <>
-      <DialogHeader>
+      <DialogHeader className="p-6 pb-0">
         <DialogTitle className="truncate">{snippet.name}</DialogTitle>
       </DialogHeader>
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
@@ -159,7 +211,7 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
         </div>
         
         <Tabs defaultValue="code" className="space-y-4">
-          <TabsList className="grid grid-cols-4">
+          <TabsList className="grid grid-cols-5">
             <TabsTrigger value="code">Code</TabsTrigger>
             <TabsTrigger value="explanation">
               <Sparkles className="h-4 w-4 mr-2" />
@@ -172,6 +224,10 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
             <TabsTrigger value="bug-finder">
               <AlertTriangle className="h-4 w-4 mr-2" />
               AI Bug Finder
+            </TabsTrigger>
+            <TabsTrigger value="history" onClick={handleFetchVersions}>
+              <History className="h-4 w-4 mr-2" />
+              History
             </TabsTrigger>
           </TabsList>
           <TabsContent value="code">
@@ -306,9 +362,54 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
               )}
             </div>
           </TabsContent>
+           <TabsContent value="history">
+                <div className="p-4 border rounded-md space-y-4">
+                {isFetchingVersions && <p className="text-sm text-muted-foreground">Loading history...</p>}
+                {!isFetchingVersions && versions.length === 0 && (
+                    <Alert>
+                        <History className="h-4 w-4" />
+                        <AlertTitle>No History Found</AlertTitle>
+                        <AlertDescription>
+                            There are no saved versions for this snippet yet. Edit and save the snippet to create a version.
+                        </AlertDescription>
+                    </Alert>
+                )}
+                {!isFetchingVersions && versions.length > 0 && (
+                    <ScrollArea className="h-[300px]">
+                        <div className="space-y-4 pr-4">
+                            {versions.map(version => (
+                                <div key={version._id} className="p-3 rounded-md bg-muted/50">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <div>
+                                            <p className="font-semibold text-sm">{version.name}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Saved {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => handleRestoreVersion(version._id)}
+                                            disabled={isRestoring === version._id}
+                                        >
+                                            {isRestoring === version._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Undo className="h-4 w-4 mr-2" />}
+                                            Restore
+                                        </Button>
+                                    </div>
+                                    <CodeBlock code={version.code} language={version.language} />
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                )}
+                </div>
+          </TabsContent>
         </Tabs>
       </div>
-      <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-end">
+      <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-between">
+         <Button variant="ghost" size="sm" onClick={onClose}>
+            Close
+          </Button>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Pencil className="h-4 w-4 mr-2" />

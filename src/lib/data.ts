@@ -9,6 +9,17 @@ export type Snippet = {
   updatedAt: Date;
 };
 
+export type SnippetVersion = {
+  _id: string;
+  snippetId: string;
+  name: string;
+  language: string;
+  code: string;
+  tags: string[];
+  description: string;
+  createdAt: Date;
+};
+
 export type Bug = {
   line: number;
   bug: string;
