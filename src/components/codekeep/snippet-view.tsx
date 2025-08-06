@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check } from 'lucide-react';
-import { DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
@@ -224,9 +223,9 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
 
   return (
     <>
-      <DialogHeader className="p-6 pb-0">
+      <div className="p-6 pb-0">
         <div className="flex justify-between items-center">
-            <DialogTitle className="truncate">{snippet.name}</DialogTitle>
+            <h2 className="text-lg font-semibold leading-none tracking-tight truncate">{snippet.name}</h2>
              <Popover>
                 <PopoverTrigger asChild>
                 <Button variant="outline" size="sm"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
@@ -263,7 +262,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
                 </PopoverContent>
             </Popover>
         </div>
-      </DialogHeader>
+      </div>
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         <div>
           <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Description</h3>
@@ -478,8 +477,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
           </TabsContent>
         </Tabs>
       </div>
-      <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 p-6 border-t pt-4 bg-muted/50 sm:justify-between">
           <Button variant="destructive" size="sm" onClick={onDelete}>
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
@@ -488,8 +486,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
             <Pencil className="h-4 w-4 mr-2" />
             Edit
           </Button>
-        </div>
-      </DialogFooter>
+      </div>
     </>
   );
 }
