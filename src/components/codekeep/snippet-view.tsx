@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -11,12 +12,12 @@ import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { languages } from '@/lib/data';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -131,76 +132,70 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
           </div>
         </div>
         
-        <div className="space-y-2">
-           <div className="flex items-center justify-between">
-             <h3 className="font-semibold text-sm text-muted-foreground">Code</h3>
-           </div>
-           <div className="h-full max-h-[300px]">
-             <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
-           </div>
-        </div>
-
-        <Accordion type="multiple" className="w-full space-y-4">
-          <AccordionItem value="item-1" className="border rounded-md px-4">
-              <AccordionTrigger className="py-4 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <h3 className="font-semibold text-sm">AI Explanation</h3>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pb-4">
-                <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
-                  {isExplaining ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4 mr-2" />
-                  )}
-                  {explanation ? 'Regenerate Explanation' : 'Explain Code'}
-                </Button>
-                {isExplaining && !explanation && <p className="text-sm text-muted-foreground mt-4">Generating explanation...</p>}
-                {explanation && (
-                  <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border rounded-lg p-4 bg-muted/50">
-                      <ReactMarkdown
-                      components={{
-                        code({ node, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          return match ? (
-                            <SyntaxHighlighter
-                              style={vscDarkPlus}
-                              language={match[1]}
-                              PreTag="div"
-                              customStyle={{
-                                backgroundColor: 'hsl(var(--background))',
-                                borderRadius: '0.5rem',
-                                padding: '1rem',
-                                margin: '1rem 0',
-                              }}
-                            >
-                              {String(children).replace(/\n$/, '')}
-                            </SyntaxHighlighter>
-                          ) : (
-                            <code className="bg-background rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
-                              {children}
-                            </code>
-                          );
-                        },
-                      }}
-                    >
-                      {explanation}
-                    </ReactMarkdown>
-                  </div>
+        <Tabs defaultValue="code" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="code">Code</TabsTrigger>
+            <TabsTrigger value="explanation">
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Explanation
+            </TabsTrigger>
+            <TabsTrigger value="converter">
+              <Languages className="h-4 w-4 mr-2" />
+              AI Code Converter
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="code">
+            <div className="h-full max-h-[300px]">
+              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
+            </div>
+          </TabsContent>
+          <TabsContent value="explanation">
+            <div className="p-4 border rounded-md">
+              <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
+                {isExplaining ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
                 )}
-              </AccordionContent>
-          </AccordionItem>
-          
-          <AccordionItem value="item-2" className="border rounded-md px-4">
-              <AccordionTrigger className="py-4 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Languages className="h-4 w-4 text-primary" />
-                  <h3 className="font-semibold text-sm">AI Code Converter</h3>
+                {explanation ? 'Regenerate Explanation' : 'Explain Code'}
+              </Button>
+              {isExplaining && !explanation && <p className="text-sm text-muted-foreground mt-4">Generating explanation...</p>}
+              {explanation && (
+                <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border rounded-lg p-4 bg-muted/50">
+                    <ReactMarkdown
+                    components={{
+                      code({ node, className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return match ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            customStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                              borderRadius: '0.5rem',
+                              padding: '1rem',
+                              margin: '1rem 0',
+                            }}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className="bg-background rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                    }}
+                  >
+                    {explanation}
+                  </ReactMarkdown>
                 </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pb-4">
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="converter">
+             <div className="p-4 border rounded-md space-y-4">
                 <div className="flex items-center gap-2">
                   <Select onValueChange={setTargetLanguage} defaultValue={targetLanguage}>
                     <SelectTrigger className="w-[180px]">
@@ -244,10 +239,9 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
                     )}
                   </div>
                 )}
-              </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-
+             </div>
+          </TabsContent>
+        </Tabs>
       </div>
       <DialogFooter className="border-t pt-4 bg-muted/50 p-6 sm:justify-end">
         <div className="flex items-center gap-2">
@@ -264,3 +258,6 @@ export function SnippetView({ snippet, onEdit, onDelete, onSave }: SnippetViewPr
     </>
   );
 }
+
+
+    
