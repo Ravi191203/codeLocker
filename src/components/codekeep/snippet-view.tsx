@@ -6,7 +6,7 @@ import type { Bug, Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check, Eye } from 'lucide-react';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
@@ -25,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '../ui/dialog';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -48,6 +49,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
   const [isRestoring, setIsRestoring] = useState<string | null>(null);
   const [isSharing, startSharingTransition] = useTransition();
   const [hasCopied, setHasCopied] = useState(false);
+  const [viewingVersion, setViewingVersion] = useState<SnippetVersion | null>(null);
 
   const { toast } = useToast();
 
@@ -57,6 +59,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
     setConvertedCode(null);
     setBugs(null);
     setVersions([]);
+    setViewingVersion(null);
   }, [initialSnippet]);
 
   if (!snippet) {
@@ -178,6 +181,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
             title: 'Snippet Restored!',
             description: 'The snippet has been restored to the selected version.',
         });
+        setViewingVersion(null);
         onSave(); // This will trigger a refetch and update the view
     } catch (error) {
         console.error(error);
@@ -447,27 +451,23 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
                 )}
                 {!isFetchingVersions && versions.length > 0 && (
                     <ScrollArea className="h-[300px]">
-                        <div className="space-y-4 pr-4">
+                        <div className="space-y-2 pr-4">
                             {versions.map(version => (
-                                <div key={version._id} className="p-3 rounded-md bg-muted/50">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <div>
-                                            <p className="font-semibold text-sm">{version.name}</p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Saved {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
-                                            </p>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => handleRestoreVersion(version._id)}
-                                            disabled={isRestoring === version._id}
-                                        >
-                                            {isRestoring === version._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Undo className="h-4 w-4 mr-2" />}
-                                            Restore
-                                        </Button>
+                                <div key={version._id} className="p-3 rounded-md bg-muted/50 flex justify-between items-center">
+                                    <div>
+                                        <p className="font-semibold text-sm">{version.name}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Saved {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
+                                        </p>
                                     </div>
-                                    <CodeBlock code={version.code} language={version.language} />
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => setViewingVersion(version)}
+                                    >
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        View
+                                    </Button>
                                 </div>
                             ))}
                         </div>
@@ -487,6 +487,38 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
             Edit
           </Button>
       </div>
+
+       <Dialog open={!!viewingVersion} onOpenChange={(open) => !open && setViewingVersion(null)}>
+        <DialogContent className="max-w-3xl">
+          {viewingVersion && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{viewingVersion.name}</DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                    Version saved on {new Date(viewingVersion.createdAt).toLocaleString()}
+                </p>
+              </DialogHeader>
+              <div className="max-h-[60vh] overflow-y-auto -mx-6 px-6">
+                <CodeBlock code={viewingVersion.code} language={viewingVersion.language} />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="outline">Close</Button>
+                </DialogClose>
+                <Button
+                    onClick={() => handleRestoreVersion(viewingVersion._id)}
+                    disabled={isRestoring === viewingVersion._id}
+                >
+                    {isRestoring === viewingVersion._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Undo className="h-4 w-4 mr-2" />}
+                    Restore this version
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
+
+    
