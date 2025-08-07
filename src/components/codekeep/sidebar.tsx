@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Code, FileCode, Plus, Search, Menu } from 'lucide-react';
+import { Code, FileCode, Plus, Search, Menu, LayoutDashboard } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
 import { Snippet } from '@/lib/data';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import Link from 'next/link';
 
 
 interface AppSidebarProps {
@@ -103,6 +104,15 @@ export function AppSidebar({
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-2">
+            <div>
+                 <Link href="/" className={cn(
+                    "w-full text-left p-2 rounded-md text-sm flex items-start gap-3 mb-1",
+                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  )}>
+                    <LayoutDashboard className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    Dashboard
+                </Link>
+            </div>
           <div>
             <h2 className="px-2 py-1 text-xs font-semibold text-muted-foreground">SNIPPETS</h2>
             {snippets.length > 0 ? (
