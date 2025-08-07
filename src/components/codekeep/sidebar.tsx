@@ -73,7 +73,7 @@ export function AppSidebar({
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
       <div className="p-4 space-y-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold tracking-tight">CodeLocker</h1>
+            <h1 className="text-xl font-bold tracking-tight text-accent">CodeKeep</h1>
             <Button variant="ghost" size="icon" className="md:hidden" asChild>
               <SidebarTrigger>
                 <Menu />
@@ -106,7 +106,7 @@ export function AppSidebar({
         <div className="p-2 space-y-2">
             <div>
                  <Link href="/" className={cn(
-                    "w-full text-left p-2 rounded-md text-sm flex items-start gap-3 mb-1",
+                    "w-full text-left p-2 rounded-md text-sm flex items-center gap-3 mb-1 font-medium",
                     "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}>
                     <LayoutDashboard className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -127,9 +127,9 @@ export function AppSidebar({
                         selectedSnippetId === snippet._id && "bg-sidebar-accent text-sidebar-accent-foreground"
                       )}
                     >
-                      <Code className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <Code className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
                       <div className="flex-1 overflow-hidden">
-                        <p className="font-semibold truncate">{truncateName(snippet.name, 4)}</p>
+                        <p className="font-semibold truncate">{snippet.name}</p>
                         <p className="text-xs text-muted-foreground">
                             {snippet.language}
                             <span className="ml-1">{languageExtensions[snippet.language] || ''}</span>
@@ -151,7 +151,7 @@ export function AppSidebar({
       </ScrollArea>
 
       <div className="p-4 mt-auto border-t border-sidebar-border">
-        <Button className="w-full" onClick={onAddSnippet}>
+        <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={onAddSnippet}>
           <Plus className="mr-2 h-4 w-4" />
           New Snippet
         </Button>

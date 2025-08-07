@@ -228,8 +228,10 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
   return (
     <>
       <div className="p-6 pb-0">
-        <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold leading-none tracking-tight truncate">{snippet.name}</h2>
+        <div className="flex justify-between items-start gap-4">
+            <div className='flex-1'>
+                <h2 className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</h2>
+            </div>
              <Popover>
                 <PopoverTrigger asChild>
                 <Button variant="outline" size="sm"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
@@ -269,12 +271,12 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
       </div>
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         <div>
-          <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Description</h3>
-          <p className="text-sm">{snippet.description}</p>
+          <h3 className="font-semibold text-sm mb-2 text-muted-foreground uppercase tracking-wider">Description</h3>
+          <p className="text-sm text-foreground/80">{snippet.description}</p>
         </div>
 
         <div>
-           <h3 className="font-semibold text-sm mb-2 text-muted-foreground">Language & Tags</h3>
+           <h3 className="font-semibold text-sm mb-2 text-muted-foreground uppercase tracking-wider">Language & Tags</h3>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
             {snippet.tags.map((tag) => (
@@ -286,19 +288,19 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
         </div>
         
         <Tabs defaultValue="code" className="space-y-4">
-          <TabsList className="grid grid-cols-5">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
             <TabsTrigger value="code">Code</TabsTrigger>
             <TabsTrigger value="explanation">
               <Sparkles className="h-4 w-4 mr-2" />
-              AI Explanation
+              Explain
             </TabsTrigger>
             <TabsTrigger value="converter">
               <Languages className="h-4 w-4 mr-2" />
-              AI Code Converter
+              Convert
             </TabsTrigger>
             <TabsTrigger value="bug-finder">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              AI Bug Finder
+              Find Bugs
             </TabsTrigger>
             <TabsTrigger value="history" onClick={handleFetchVersions}>
               <History className="h-4 w-4 mr-2" />
@@ -306,12 +308,12 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
             </TabsTrigger>
           </TabsList>
           <TabsContent value="code">
-            <div className="h-full max-h-[300px]">
+            <div className="h-full max-h-[400px]">
               <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
             </div>
           </TabsContent>
           <TabsContent value="explanation">
-            <div className="p-4 border rounded-md">
+            <div className="p-4 border rounded-md min-h-[400px]">
               <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
                 {isExplaining ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -320,7 +322,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
                 )}
                 {explanation ? 'Regenerate Explanation' : 'Explain Code'}
               </Button>
-              {isExplaining && !explanation && <p className="text-sm text-muted-foreground mt-4">Generating explanation...</p>}
+              {isExplaining && !explanation && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
               {explanation && (
                 <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border rounded-lg p-4 bg-muted/50">
                     <ReactMarkdown
@@ -356,10 +358,10 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
             </div>
           </TabsContent>
           <TabsContent value="converter">
-             <div className="p-4 border rounded-md space-y-4">
+             <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
                 <div className="flex items-center gap-2">
                   <Select onValueChange={setTargetLanguage} defaultValue={targetLanguage}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-full md:w-[180px]">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
@@ -380,7 +382,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
 
                 {(isConverting || convertedCode) && (
                   <div className="mt-4">
-                    {isConverting && <p className="text-sm text-muted-foreground">Converting code...</p>}
+                    {isConverting && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
                     {convertedCode && (
                        <div className="space-y-2">
                         <div className="flex justify-end">
@@ -403,7 +405,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
              </div>
           </TabsContent>
           <TabsContent value="bug-finder">
-            <div className="p-4 border rounded-md space-y-4">
+            <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
               <Button variant="outline" size="sm" onClick={handleFindBugs} disabled={isFindingBugs}>
                 {isFindingBugs ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -412,7 +414,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
                 )}
                 {bugs ? 'Scan Again' : 'Find Bugs'}
               </Button>
-              {isFindingBugs && <p className="text-sm text-muted-foreground mt-4">Scanning for bugs...</p>}
+              {isFindingBugs && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
               {bugs && bugs.length === 0 && (
                  <Alert className="mt-4">
                     <ShieldCheck className="h-4 w-4" />
@@ -423,7 +425,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
                 </Alert>
               )}
               {bugs && bugs.length > 0 && (
-                <ScrollArea className="mt-4 h-[250px] space-y-4">
+                <ScrollArea className="mt-4 h-[300px] space-y-4">
                     <div className="space-y-4 pr-4">
                     {bugs.map((bug, index) => (
                         <Alert key={index} variant="destructive">
@@ -438,8 +440,8 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
             </div>
           </TabsContent>
            <TabsContent value="history">
-                <div className="p-4 border rounded-md space-y-4">
-                {isFetchingVersions && <p className="text-sm text-muted-foreground">Loading history...</p>}
+                <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+                {isFetchingVersions && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
                 {!isFetchingVersions && versions.length === 0 && (
                     <Alert>
                         <History className="h-4 w-4" />
@@ -477,7 +479,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
           </TabsContent>
         </Tabs>
       </div>
-      <div className="flex items-center gap-2 p-6 border-t pt-4 bg-muted/50 sm:justify-between">
+      <div className="flex items-center justify-end gap-2 p-6 border-t pt-4 bg-muted/50">
           <Button variant="destructive" size="sm" onClick={onDelete}>
             <Trash2 className="h-4 w-4 mr-2" />
             Delete
@@ -489,7 +491,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
       </div>
 
        <Dialog open={!!viewingVersion} onOpenChange={(open) => !open && setViewingVersion(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col">
           {viewingVersion && (
             <>
               <DialogHeader>
@@ -498,8 +500,8 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
                     Version saved on {new Date(viewingVersion.createdAt).toLocaleString()}
                 </p>
               </DialogHeader>
-              <div className="max-h-[60vh] overflow-y-auto -mx-6 px-6">
-                <CodeBlock code={viewingVersion.code} language={viewingVersion.language} />
+              <div className="flex-1 min-h-0">
+                <CodeBlock code={viewingVersion.code} language={viewingVersion.language} className="h-full" />
               </div>
               <DialogFooter>
                 <DialogClose asChild>
@@ -520,5 +522,3 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
     </>
   );
 }
-
-    
