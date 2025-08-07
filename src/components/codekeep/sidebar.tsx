@@ -6,7 +6,7 @@ import { Code, FileCode, Plus, Search, Menu, LayoutDashboard } from 'lucide-reac
 import { ScrollArea } from '../ui/scroll-area';
 import { Snippet } from '@/lib/data';
 import { cn } from '@/lib/utils';
-import { SidebarTrigger } from '../ui/sidebar';
+import { SidebarTrigger, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarFooter } from '../ui/sidebar';
 import {
   Select,
   SelectContent,
@@ -14,8 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import Link from 'next/link';
-
 
 interface AppSidebarProps {
   searchTerm: string;
@@ -26,6 +24,7 @@ interface AppSidebarProps {
   snippets: Snippet[];
   onSelectSnippet: (snippet: Snippet) => void;
   selectedSnippetId: string | null;
+  onHomeNavigation: () => void;
 }
 
 const languageExtensions: { [key: string]: string } = {
@@ -68,94 +67,83 @@ export function AppSidebar({
   snippets,
   onSelectSnippet,
   selectedSnippetId,
+  onHomeNavigation,
 }: AppSidebarProps) {
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      <div className="p-4 space-y-4 border-b border-sidebar-border">
-        <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold tracking-tight text-accent">CodeKeep</h1>
-            <Button variant="ghost" size="icon" className="md:hidden" asChild>
-              <SidebarTrigger>
-                <Menu />
-              </SidebarTrigger>
-            </Button>
-        </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search snippets..."
-            className="pl-9 bg-muted/50 focus:bg-background"
-            value={searchTerm}
-            onChange={(e) => onSearch(e.target.value)}
-          />
-        </div>
-         <Select value={sortOption} onValueChange={onSortChange}>
-            <SelectTrigger className="w-full bg-muted/50">
-                <SelectValue placeholder="Sort by..." />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="oldest">Oldest</SelectItem>
-                <SelectItem value="a-z">A-Z</SelectItem>
-                <SelectItem value="z-a">Z-A</SelectItem>
-            </SelectContent>
-         </Select>
-      </div>
-
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-2">
-            <div>
-                 <Link href="/dashboard" className={cn(
-                    "w-full text-left p-2 rounded-md text-sm flex items-center gap-3 mb-1 font-medium",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  )}>
-                    <LayoutDashboard className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    Dashboard
-                </Link>
+        <SidebarHeader className='p-4'>
+            <div className="flex items-center justify-between">
+                <h1 className="text-xl font-bold tracking-tight text-accent">CodeKeep</h1>
+                <Button variant="ghost" size="icon" className="md:hidden" asChild>
+                <SidebarTrigger>
+                    <Menu />
+                </SidebarTrigger>
+                </Button>
             </div>
-          <div>
-            <h2 className="px-2 py-1 text-xs font-semibold text-muted-foreground">SNIPPETS</h2>
-            {snippets.length > 0 ? (
-              <ul className="space-y-1 mt-1">
-                {snippets.map(snippet => (
-                  <li key={snippet._id}>
-                    <button
-                      onClick={() => onSelectSnippet(snippet)}
-                      className={cn(
-                        "w-full text-left p-2 rounded-md text-sm flex items-start gap-3",
-                        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                        selectedSnippetId === snippet._id && "bg-sidebar-accent text-sidebar-accent-foreground"
-                      )}
-                    >
-                      <Code className="w-4 h-4 mt-0.5 flex-shrink-0 text-accent" />
-                      <div className="flex-1 overflow-hidden">
-                        <p className="font-semibold truncate">{snippet.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                            {snippet.language}
-                            <span className="ml-1">{languageExtensions[snippet.language] || ''}</span>
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-center p-8 text-sm text-muted-foreground">
-                <FileCode className="w-10 h-10 mx-auto mb-2" />
-                <p className="font-semibold">No snippets found.</p>
-                <p className="text-xs">Add a new snippet to get started.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </ScrollArea>
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search snippets..."
+                    className="pl-9 bg-muted/50 focus:bg-background"
+                    value={searchTerm}
+                    onChange={(e) => onSearch(e.target.value)}
+                />
+            </div>
+            <Select value={sortOption} onValueChange={onSortChange}>
+                <SelectTrigger className="w-full bg-muted/50">
+                    <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="oldest">Oldest</SelectItem>
+                    <SelectItem value="a-z">A-Z</SelectItem>
+                    <SelectItem value="z-a">Z-A</SelectItem>
+                </SelectContent>
+            </Select>
+        </SidebarHeader>
 
-      <div className="p-4 mt-auto border-t border-sidebar-border">
-        <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={onAddSnippet}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Snippet
-        </Button>
-      </div>
+        <SidebarContent>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton onClick={onHomeNavigation} tooltip='Dashboard'>
+                        <LayoutDashboard />
+                        <span>Dashboard</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarGroup>
+                    <SidebarGroupLabel>Snippets</SidebarGroupLabel>
+                    <SidebarMenu className='mt-2'>
+                        {snippets.length > 0 ? (
+                            snippets.map(snippet => (
+                                <SidebarMenuItem key={snippet._id}>
+                                    <SidebarMenuButton 
+                                        onClick={() => onSelectSnippet(snippet)} 
+                                        isActive={selectedSnippetId === snippet._id}
+                                        tooltip={snippet.name}
+                                    >
+                                        <Code className="text-accent" />
+                                        <span>{truncateName(snippet.name, 4)}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))
+                        ) : (
+                            <div className="text-center p-8 text-sm text-muted-foreground group-data-[collapsible=icon]:hidden">
+                                <FileCode className="w-10 h-10 mx-auto mb-2" />
+                                <p className="font-semibold">No snippets found.</p>
+                                <p className="text-xs">Add a new snippet to get started.</p>
+                            </div>
+                        )}
+                    </SidebarMenu>
+                </SidebarGroup>
+            </SidebarMenu>
+        </SidebarContent>
+
+        <SidebarFooter className='p-4'>
+            <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={onAddSnippet}>
+            <Plus className="mr-2 h-4 w-4" />
+            <span className='group-data-[collapsible=icon]:hidden'>New Snippet</span>
+            </Button>
+        </SidebarFooter>
     </div>
   );
 }

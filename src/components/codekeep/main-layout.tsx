@@ -24,9 +24,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { Menu, Plus, Sparkles, FolderKanban, Search } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -56,7 +55,10 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
 
   useEffect(() => {
     refetchData();
-  }, []);
+    if (pathname !== '/' && selectedSnippet) {
+        setSelectedSnippet(null);
+    }
+  }, [pathname]);
 
   const filteredSnippets = useMemo(() => {
     return snippets
@@ -89,7 +91,7 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   const handleSelectSnippet = (snippet: Snippet) => {
     setSelectedSnippet(snippet);
     if(pathname !== '/') {
-        router.push('/');
+        router.push('/dashboard');
     }
   };
 
@@ -157,11 +159,16 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   const onSnippetSaved = () => {
     refetchData();
   };
+  
+  const handleHomeNavigation = () => {
+    setSelectedSnippet(null);
+    router.push('/dashboard');
+  }
 
   return (
     <SidebarProvider>
       <div className="flex h-screen bg-background text-foreground">
-        <Sidebar>
+        <Sidebar collapsible='icon'>
           <AppSidebar
             searchTerm={searchTerm}
             onSearch={setSearchTerm}
@@ -171,6 +178,7 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
             snippets={filteredSnippets}
             onSelectSnippet={handleSelectSnippet}
             selectedSnippetId={selectedSnippet?._id || null}
+            onHomeNavigation={handleHomeNavigation}
           />
         </Sidebar>
         <SidebarInset>
@@ -182,7 +190,7 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
                   </SidebarTrigger>
                 </Button>
               </div>
-              {selectedSnippet && pathname === '/' ? (
+              {selectedSnippet ? (
                  <div className="flex-1 flex flex-col h-full">
                     <SnippetView
                         snippet={selectedSnippet}
