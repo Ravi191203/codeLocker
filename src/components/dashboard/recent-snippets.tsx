@@ -14,19 +14,25 @@ export function RecentSnippets({ snippets }: { snippets: Snippet[] }) {
 
     return (
         <div className="space-y-4">
-            {snippets.map(snippet => (
-                <div key={snippet._id} className="flex items-center">
-                    <div className="ml-4 space-y-1">
-                        <p className="text-sm font-medium leading-none">{snippet.name}</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-2">
-                            <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
-                           <span>
-                             Updated {formatDistanceToNow(new Date(snippet.updatedAt), { addSuffix: true })}
-                           </span>
-                        </p>
+            {snippets.map(snippet => {
+                const dateToFormat = snippet.updatedAt || snippet.createdAt;
+                const date = dateToFormat ? new Date(dateToFormat) : null;
+                const isValidDate = date && !isNaN(date.getTime());
+
+                return (
+                    <div key={snippet._id} className="flex items-center">
+                        <div className="ml-4 space-y-1">
+                            <p className="text-sm font-medium leading-none">{snippet.name}</p>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
+                               <span>
+                                 {isValidDate ? `Updated ${formatDistanceToNow(date, { addSuffix: true })}` : 'Just now'}
+                               </span>
+                            </p>
+                        </div>
                     </div>
-                </div>
-            ))}
+                )
+            })}
         </div>
     )
 }
