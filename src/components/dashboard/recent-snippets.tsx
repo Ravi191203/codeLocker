@@ -23,12 +23,12 @@ export function RecentSnippets({ snippets }: { snippets: Snippet[] }) {
                     <div key={snippet._id} className="flex items-center">
                         <div className="ml-4 space-y-1">
                             <p className="text-sm font-medium leading-none">{snippet.name}</p>
-                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                            <div className="text-sm text-muted-foreground flex items-center gap-2">
                                 <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
                                <span>
                                  {isValidDate ? `Updated ${formatDistanceToNow(date, { addSuffix: true })}` : 'Just now'}
                                </span>
-                            </p>
+                            </div>
                         </div>
                     </div>
                 )
