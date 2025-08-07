@@ -105,7 +105,7 @@ export function AppSidebar({
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-2">
             <div>
-                 <Link href="/" className={cn(
+                 <Link href="/dashboard" className={cn(
                     "w-full text-left p-2 rounded-md text-sm flex items-center gap-3 mb-1 font-medium",
                     "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   )}>

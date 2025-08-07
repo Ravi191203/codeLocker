@@ -28,6 +28,8 @@ import { Menu, Plus, Sparkles, FolderKanban, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter, usePathname } from 'next/navigation';
+
 
 export function MainLayout({ initialSnippets, children }: { initialSnippets: Snippet[], children?: React.ReactNode }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
@@ -41,6 +43,9 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
+  const pathname = usePathname();
+
 
   const refetchData = () => {
      startTransition(async () => {
@@ -83,6 +88,9 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
 
   const handleSelectSnippet = (snippet: Snippet) => {
     setSelectedSnippet(snippet);
+    if(pathname !== '/') {
+        router.push('/');
+    }
   };
 
   const handleDeleteRequest = (id: string) => {
@@ -174,7 +182,7 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
                   </SidebarTrigger>
                 </Button>
               </div>
-              {selectedSnippet ? (
+              {selectedSnippet && pathname === '/' ? (
                  <div className="flex-1 flex flex-col h-full">
                     <SnippetView
                         snippet={selectedSnippet}
