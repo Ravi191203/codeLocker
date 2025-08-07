@@ -1,5 +1,5 @@
 import { getSnippets } from '../actions';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Code, Languages, Tag } from 'lucide-react';
 import { LanguageChart } from '@/components/dashboard/language-chart';
 import { StatCard } from '@/components/dashboard/stat-card';
@@ -56,8 +56,11 @@ export default async function DashboardPage() {
                 <Card className="col-span-4">
                     <CardHeader>
                         <CardTitle>Language Distribution</CardTitle>
+                        <CardDescription>
+                            A breakdown of your snippets by programming language.
+                        </CardDescription>
                     </CardHeader>
-                    <CardContent className="pl-2">
+                    <CardContent className="pr-0">
                         {chartData.length > 0 ? (
                            <LanguageChart data={chartData} />
                         ) : (
@@ -70,6 +73,9 @@ export default async function DashboardPage() {
                 <Card className="col-span-4 lg:col-span-3">
                     <CardHeader>
                         <CardTitle>Recent Snippets</CardTitle>
+                        <CardDescription>
+                            Your most recently created or updated snippets.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <RecentSnippets snippets={recentSnippets} />

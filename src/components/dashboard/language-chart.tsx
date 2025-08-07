@@ -1,7 +1,6 @@
 "use client"
 
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import { useTheme } from 'next-themes';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const COLORS = [
     'hsl(var(--chart-1))', 
@@ -15,51 +14,41 @@ type LanguageChartProps = {
     data: { name: string, value: number }[];
 }
 
-const RADIAN = Math.PI / 180;
-const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="text-xs font-bold">
-      {`${name} (${(percent * 100).toFixed(0)}%)`}
-    </text>
-  );
-};
-
-
 export function LanguageChart({ data }: LanguageChartProps) {
-  const { resolvedTheme } = useTheme();
-
   return (
     <ResponsiveContainer width="100%" height={350}>
-      <PieChart>
+      <BarChart 
+        data={data}
+        layout="vertical"
+        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
+        <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+        <YAxis 
+            type="category" 
+            dataKey="name" 
+            stroke="hsl(var(--muted-foreground))"
+            fontSize={12}
+            tick={{ fill: 'hsl(var(--foreground))' }}
+            tickLine={{ stroke: 'hsl(var(--foreground))' }}
+            className="capitalize"
+            width={80}
+        />
         <Tooltip
+            cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
             contentStyle={{
                 background: "hsl(var(--background))",
                 border: "1px solid hsl(var(--border))",
                 borderRadius: "var(--radius)",
+                color: "hsl(var(--foreground))"
             }}
         />
-        <Legend wrapperStyle={{
-            fontSize: '0.875rem',
-        }}/>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={renderCustomizedLabel}
-          outerRadius={120}
-          fill="#8884d8"
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-      </PieChart>
+        <Bar dataKey="value" name="Snippets" barSize={20} radius={[0, 4, 4, 0]}>
+            {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+        </Bar>
+      </BarChart>
     </ResponsiveContainer>
   );
 }
