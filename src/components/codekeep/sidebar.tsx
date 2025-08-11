@@ -72,11 +72,17 @@ export function AppSidebar({
   onHomeNavigation,
 }: AppSidebarProps) {
   const groupedSnippets = React.useMemo(() => groupSnippetsByLanguage(snippets), [snippets]);
-  const [openLanguages, setOpenLanguages] = React.useState<string[]>(Object.keys(groupedSnippets));
+  const [openLanguages, setOpenLanguages] = React.useState<string[]>([]);
 
   const toggleLanguage = (lang: string) => {
     setOpenLanguages(prev => prev.includes(lang) ? prev.filter(l => l !== lang) : [...prev, lang]);
   }
+  
+  React.useEffect(() => {
+    // When snippets change, we might want to default to closed.
+    // If we want them to default open, we'd do:
+    // setOpenLanguages(Object.keys(groupedSnippets));
+  }, [groupedSnippets]);
 
   return (
     <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
