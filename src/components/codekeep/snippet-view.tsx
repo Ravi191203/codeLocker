@@ -321,7 +321,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
         </div>
         
         <Tabs defaultValue="code" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
+          <TabsList className="w-full justify-start md:w-auto overflow-x-auto">
             <TabsTrigger value="code">Code</TabsTrigger>
             <TabsTrigger value="explanation">
               <Sparkles className="h-4 w-4 mr-2" />
