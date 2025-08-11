@@ -7,7 +7,7 @@ import User from '@/models/User';
 import { revalidatePath } from 'next/cache';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
-import {-v4 as uuidv4} from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 12);
 
