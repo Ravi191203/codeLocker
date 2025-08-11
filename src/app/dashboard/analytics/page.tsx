@@ -91,6 +91,16 @@ export default async function AnalyticsPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <span>Less</span>
+                <div className="w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 bg-muted/50" />
+                <div className="w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 bg-accent/40" />
+                <div className="w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 bg-accent/60" />
+                <div className="w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 bg-accent/80" />
+                <div className="w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 bg-accent" />
+                <span>More</span>
+            </div>
         </div>
     )
 }
