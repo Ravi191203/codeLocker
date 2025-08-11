@@ -47,12 +47,29 @@ export function ActivityCalendar({ data }: ActivityCalendarProps) {
     return days
   }, [data])
 
-  const getColor = (count: number) => {
-    if (count === 0) return "bg-muted/50"
-    if (count <= 1) return "bg-accent/40"
-    if (count <= 3) return "bg-accent/60"
-    if (count <= 5) return "bg-accent/80"
-    return "bg-accent"
+  const colors = {
+    0: "bg-muted/50",
+    1: "bg-accent/40",
+    2: "bg-accent/60",
+    3: "bg-accent/80",
+    4: "bg-accent",
+  }
+
+  const getColorClass = (count: number) => {
+    if (count === 0) return colors[0]
+    if (count <= 1) return colors[1]
+    if (count <= 3) return colors[2]
+    if (count <= 5) return colors[3]
+    return colors[4]
+  }
+
+  const getColorStyle = (count: number) => {
+    if (format(new Date(), "yyyy-MM-dd") < (activityData.find(d => d.count === count)?.date || '')) return { backgroundColor: 'transparent' };
+    if (count === 0) return { backgroundColor: "hsl(var(--muted) / 0.5)" }
+    if (count === 1) return { backgroundColor: "hsl(var(--accent) / 0.4)" }
+    if (count === 2) return { backgroundColor: "hsl(var(--accent) / 0.6)" }
+    if (count === 3) return { backgroundColor: "hsl(var(--accent) / 0.8)" }
+    return { backgroundColor: "hsl(var(--accent))" }
   }
   
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -82,30 +99,41 @@ export function ActivityCalendar({ data }: ActivityCalendarProps) {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col items-center gap-3">
-        <div className="grid grid-flow-col grid-rows-7 gap-1 self-start">
-          {activityData.map((day, index) =>
-            day.date ? (
-              <Tooltip key={day.key}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4`}
-                    style={{ backgroundColor: format(new Date(day.date), "yyyy-MM-dd") > format(new Date(), "yyyy-MM-dd") ? 'transparent' : getColor(day.count)}}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{day.count} snippets on {format(new Date(day.date), "MMMM d, yyyy")}</p>
-                </TooltipContent>
-              </Tooltip>
-            ) : (
-              <div key={day.key} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            )
-          )}
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-3 self-start">
+            <div className="w-full flex justify-between text-xs text-muted-foreground px-1">
+                {months.map(month => (
+                    <div key={month.name}>{month.name}</div>
+                ))}
+            </div>
+            <div className="grid grid-flow-col grid-rows-7 gap-1">
+            {activityData.map((day, index) =>
+                day.date ? (
+                <Tooltip key={day.key} delayDuration={100}>
+                    <TooltipTrigger asChild>
+                    <div
+                        className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4`}
+                        style={{ backgroundColor: format(new Date(day.date), "yyyy-MM-dd") > format(new Date(), "yyyy-MM-dd") ? 'transparent' : getColorStyle(day.count).backgroundColor}}
+                    />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                    <p>{day.count} snippets on {format(new Date(day.date), "MMMM d, yyyy")}</p>
+                    </TooltipContent>
+                </Tooltip>
+                ) : (
+                <div key={day.key} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                )
+            )}
+            </div>
         </div>
-         <div className="w-full flex justify-between text-xs text-muted-foreground px-1">
-            {months.map(month => (
-                <div key={month.name}>{month.name}</div>
-            ))}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Less</span>
+            <div className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 ${colors[0]}`} />
+            <div className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 ${colors[1]}`} />
+            <div className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 ${colors[2]}`} />
+            <div className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 ${colors[3]}`} />
+            <div className={`w-3.5 h-3.5 rounded-sm sm:w-4 sm:h-4 ${colors[4]}`} />
+            <span>More</span>
         </div>
       </div>
     </TooltipProvider>
