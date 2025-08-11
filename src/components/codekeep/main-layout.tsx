@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { languages } from '@/lib/data';
 import { SnippetList } from './snippet-list';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
 export function MainLayout({ initialSnippets, children }: { initialSnippets: Snippet[], children?: React.ReactNode }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
@@ -155,9 +156,13 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   };
   
   const selectedSnippet = useMemo(() => {
-      if (!selectedSnippetId) return null;
-      return snippets.find(s => s._id === selectedSnippetId) || null;
-  }, [selectedSnippetId, snippets]);
+    if (!selectedSnippetId) return null;
+    const snippet = snippets.find(s => s._id === selectedSnippetId);
+    // If the snippet isn't in the list but we have an ID, it might be loading.
+    // Return a temporary object to prevent errors, or null if loading is done.
+    if (!snippet && isPending) return { _id: selectedSnippetId, name: "Loading...", code: "", language: "", tags: [], description: "" } as Snippet;
+    return snippet || null;
+  }, [selectedSnippetId, snippets, isPending]);
 
   const renderContent = () => {
     if (selectedSnippet) {
@@ -170,8 +175,8 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
         />
     }
 
-    if (pathname === '/dashboard/extension') {
-        return children;
+    if (children) {
+      return <>{children}</>;
     }
     
     // Default dashboard view
