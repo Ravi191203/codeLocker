@@ -165,6 +165,7 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   }, [selectedSnippetId, snippets, isPending]);
 
   const renderContent = () => {
+    // If a snippet is selected, always show the detail view
     if (selectedSnippet) {
        return <SnippetView
             snippet={selectedSnippet}
@@ -175,11 +176,12 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
         />
     }
 
-    if (children) {
+    // On specific dashboard child pages like /extension, render them
+    if (pathname !== '/dashboard' && !pathname.startsWith('/dashboard/snippet/')) {
       return <>{children}</>;
     }
     
-    // Default dashboard view
+    // Default dashboard view: show the list
     return (
         <div className="p-4 md:p-8">
             <div className="flex items-center justify-between mb-6">
