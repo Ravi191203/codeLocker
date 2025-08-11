@@ -1,9 +1,7 @@
-import { SnippetList } from "@/components/codekeep/snippet-list";
 
-// Note: This component is now rendered as a child of MainLayout,
-// which will provide the necessary props via its context.
-// The actual list rendering is handled within MainLayout now,
-// which then renders SnippetList.
+// This page is now mostly a placeholder, as the logic for displaying
+// the snippet list or a specific snippet is handled by the MainLayout
+// based on the URL.
 export default function DashboardPage() {
   return null;
 }

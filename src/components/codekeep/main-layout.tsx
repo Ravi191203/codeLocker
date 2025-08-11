@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { Menu, Plus, Search } from 'lucide-react';
+import { Code2, Plus, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { usePathname, useRouter } from 'next/navigation';
@@ -25,10 +25,11 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { languages } from '@/lib/data';
 import { SnippetList } from './snippet-list';
+import Link from 'next/link';
 
 export function MainLayout({ initialSnippets, children }: { initialSnippets: Snippet[], children?: React.ReactNode }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
-  const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null);
+  const [selectedSnippetId, setSelectedSnippetId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('newest');
   const [languageFilter, setLanguageFilter] = useState('all');
@@ -49,12 +50,16 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
     });
   }
 
-  useEffect(() => {
-    // If we navigate away from the dashboard, but a snippet is selected, unselect it.
-    if (pathname !== '/dashboard' && selectedSnippet) {
-        setSelectedSnippet(null);
+   useEffect(() => {
+    // This effect extracts the snippet ID from the URL
+    // It allows linking directly to a snippet view
+    const pathParts = pathname.split('/');
+    if (pathname.startsWith('/dashboard/snippet/') && pathParts.length === 4) {
+      setSelectedSnippetId(pathParts[3]);
+    } else {
+      setSelectedSnippetId(null);
     }
-  }, [pathname, selectedSnippet]);
+  }, [pathname]);
 
   const filteredSnippets = useMemo(() => {
     return snippets
@@ -86,11 +91,11 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   }, [snippets, searchTerm, sortOption, languageFilter]);
 
   const handleSelectSnippet = (snippet: Snippet) => {
-    setSelectedSnippet(snippet);
+    router.push(`/dashboard/snippet/${snippet._id}`);
   };
   
   const handleDeselectSnippet = () => {
-    setSelectedSnippet(null);
+    router.push('/dashboard');
   }
 
   const handleDeleteRequest = (id: string) => {
@@ -108,8 +113,8 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
             description: 'The snippet has been permanently deleted.',
           });
           refetchData();
-          if (selectedSnippet?._id === snippetToDelete) {
-              setSelectedSnippet(null);
+          if (selectedSnippetId === snippetToDelete) {
+              handleDeselectSnippet();
           }
         } catch (error) {
           toast({
@@ -141,28 +146,82 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   
   const onSnippetUpdated = () => {
     setEditDialogOpen(false);
-    startTransition(async () => {
-      const newSnippets = await getSnippets();
-      setSnippets(newSnippets);
-      if (snippetToEdit) {
-        const updatedSnippet = newSnippets.find((s: Snippet) => s._id === snippetToEdit._id);
-        if (updatedSnippet) {
-          setSelectedSnippet(updatedSnippet);
-        }
-      }
-      setSnippetToEdit(null);
-    });
+    refetchData();
+    setSnippetToEdit(null);
   }
 
   const onSnippetSaved = () => {
     refetchData();
   };
   
+  const selectedSnippet = useMemo(() => {
+      if (!selectedSnippetId) return null;
+      return snippets.find(s => s._id === selectedSnippetId) || null;
+  }, [selectedSnippetId, snippets]);
+
+  const renderContent = () => {
+    if (selectedSnippet) {
+       return <SnippetView
+            snippet={selectedSnippet}
+            onEdit={() => handleEditRequest(selectedSnippet)}
+            onDelete={() => handleDeleteRequest(selectedSnippet._id)}
+            onSave={onSnippetSaved}
+            onBack={handleDeselectSnippet}
+        />
+    }
+
+    if (pathname === '/dashboard/extension') {
+        return children;
+    }
+    
+    // Default dashboard view
+    return (
+        <div className="p-4 md:p-8">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">My Snippets</h2>
+                <div className="flex items-center gap-2">
+                     <Select value={languageFilter} onValueChange={setLanguageFilter}>
+                        <SelectTrigger className="w-full md:w-[180px]">
+                            <SelectValue placeholder="Filter by language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Languages</SelectItem>
+                            {languages.map(lang => (
+                                <SelectItem key={lang} value={lang} className="capitalize">{lang}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select value={sortOption} onValueChange={setSortOption}>
+                        <SelectTrigger className="w-full md:w-[180px]">
+                            <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="newest">Newest</SelectItem>
+                            <SelectItem value="oldest">Oldest</SelectItem>
+                            <SelectItem value="a-z">A-Z</SelectItem>
+                            <SelectItem value="z-a">Z-A</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+             <SnippetList 
+                snippets={filteredSnippets} 
+                onSelectSnippet={handleSelectSnippet}
+                onEdit={handleEditRequest}
+                onDelete={handleDeleteRequest}
+            />
+        </div>
+    )
+  }
+
   return (
     <>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <header className="flex items-center justify-between gap-4 p-4 border-b">
-             <h1 className="text-xl font-bold tracking-tight text-accent">CodeKeep</h1>
+             <Link href="/dashboard" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
+                <Code2 />
+                CodeKeep
+             </Link>
              <div className="flex-1 max-w-2xl">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -174,61 +233,22 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
                     />
                 </div>
              </div>
-             <Button
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-                onClick={handleAddSnippet}
-                >
-                <Plus className="mr-2 h-4 w-4" />
-                <span>New Snippet</span>
-            </Button>
+             <div className="flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                    <Link href="/dashboard/extension">VS Code</Link>
+                </Button>
+                <Button
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    onClick={handleAddSnippet}
+                    >
+                    <Plus className="mr-2 h-4 w-4" />
+                    <span>New Snippet</span>
+                </Button>
+             </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">
-            {selectedSnippet ? (
-                <SnippetView
-                    snippet={selectedSnippet}
-                    onEdit={() => handleEditRequest(selectedSnippet)}
-                    onDelete={() => handleDeleteRequest(selectedSnippet._id)}
-                    onSave={onSnippetSaved}
-                    onBack={handleDeselectSnippet}
-                />
-            ) : (
-                <div className="p-4 md:p-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold">My Snippets</h2>
-                        <div className="flex items-center gap-2">
-                             <Select value={languageFilter} onValueChange={setLanguageFilter}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter by language" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Languages</SelectItem>
-                                    {languages.map(lang => (
-                                        <SelectItem key={lang} value={lang} className="capitalize">{lang}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <Select value={sortOption} onValueChange={setSortOption}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Sort by..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="newest">Newest</SelectItem>
-                                    <SelectItem value="oldest">Oldest</SelectItem>
-                                    <SelectItem value="a-z">A-Z</SelectItem>
-                                    <SelectItem value="z-a">Z-A</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                     <SnippetList 
-                        snippets={filteredSnippets} 
-                        onSelectSnippet={handleSelectSnippet}
-                        onEdit={handleEditRequest}
-                        onDelete={handleDeleteRequest}
-                    />
-                </div>
-            )}
+            {isPending && !selectedSnippetId ? <div className="p-8">Loading snippets...</div> : renderContent()}
         </main>
       </div>
 

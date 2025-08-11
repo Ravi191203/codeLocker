@@ -3,9 +3,11 @@
 import dbConnect from '@/lib/db';
 import Snippet from '@/models/Snippet';
 import SnippetVersion from '@/models/SnippetVersion';
+import User from '@/models/User';
 import { revalidatePath } from 'next/cache';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
+import {-v4 as uuidv4} from 'uuid';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 12);
 
@@ -29,6 +31,7 @@ export async function addSnippet(data: {
   const newSnippet = new Snippet(snippetData);
   await newSnippet.save();
   revalidatePath('/');
+  revalidatePath('/dashboard');
 }
 
 export async function updateSnippet(id: string, data: {
@@ -63,6 +66,7 @@ export async function updateSnippet(id: string, data: {
     await Snippet.findByIdAndUpdate(id, updateData);
     revalidatePath('/');
     revalidatePath(`/snippet/${id}/history`);
+    revalidatePath('/dashboard');
 }
 
 export async function deleteSnippet(id: string) {
@@ -81,6 +85,7 @@ export async function deleteSnippet(id: string) {
     session.endSession();
   }
   revalidatePath('/');
+  revalidatePath('/dashboard');
 }
 
 export async function getSnippetVersions(snippetId: string) {
@@ -126,6 +131,7 @@ export async function restoreSnippetVersion(versionId: string) {
     revalidatePath('/');
     revalidatePath(`/snippet/${version.snippetId}/history`);
     revalidatePath(`/s/${currentSnippet.shareId}`);
+    revalidatePath('/dashboard');
 }
 
 export async function updateSnippetSharing(id: string, isPublic: boolean) {
@@ -154,4 +160,22 @@ export async function getSharedSnippet(shareId: string) {
         return null;
     }
     return JSON.parse(JSON.stringify(snippet));
+}
+
+// For this example, we'll have a single default user.
+// In a real app, you'd have user authentication and management.
+export async function getUser() {
+  await dbConnect();
+  let user = await User.findOne({ username: 'default' });
+
+  if (!user) {
+    const apiKey = `ck_live_${uuidv4().replace(/-/g, '')}`;
+    user = new User({
+        username: 'default',
+        apiKey: apiKey
+    });
+    await user.save();
+  }
+
+  return JSON.parse(JSON.stringify(user));
 }
