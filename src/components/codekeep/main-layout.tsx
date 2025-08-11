@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { Code2, Plus, Search } from 'lucide-react';
+import { BarChart3, Code2, Plus, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { usePathname, useRouter } from 'next/navigation';
@@ -52,8 +52,6 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   }
 
    useEffect(() => {
-    // This effect extracts the snippet ID from the URL
-    // It allows linking directly to a snippet view
     const pathParts = pathname.split('/');
     if (pathname.startsWith('/dashboard/snippet/') && pathParts.length === 4) {
       setSelectedSnippetId(pathParts[3]);
@@ -158,14 +156,11 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   const selectedSnippet = useMemo(() => {
     if (!selectedSnippetId) return null;
     const snippet = snippets.find(s => s._id === selectedSnippetId);
-    // If the snippet isn't in the list but we have an ID, it might be loading.
-    // Return a temporary object to prevent errors, or null if loading is done.
     if (!snippet && isPending) return { _id: selectedSnippetId, name: "Loading...", code: "", language: "", tags: [], description: "" } as Snippet;
     return snippet || null;
   }, [selectedSnippetId, snippets, isPending]);
 
   const renderContent = () => {
-    // If a snippet is selected, always show the detail view
     if (selectedSnippet) {
        return <SnippetView
             snippet={selectedSnippet}
@@ -176,12 +171,10 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
         />
     }
 
-    // On specific dashboard child pages like /extension, render them
     if (pathname !== '/dashboard' && !pathname.startsWith('/dashboard/snippet/')) {
       return <>{children}</>;
     }
     
-    // Default dashboard view: show the list
     return (
         <div className="p-4 md:p-8">
             <div className="flex items-center justify-between mb-6">
@@ -241,6 +234,12 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
                 </div>
              </div>
              <div className="flex items-center gap-2">
+                <Button variant="ghost" asChild>
+                    <Link href="/dashboard/analytics" className="flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        Analytics
+                    </Link>
+                </Button>
                 <Button variant="ghost" asChild>
                     <Link href="/dashboard/extension">VS Code</Link>
                 </Button>
