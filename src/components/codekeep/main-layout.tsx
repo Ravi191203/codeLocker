@@ -1,14 +1,6 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useTransition } from 'react';
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarInset,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { AppSidebar } from './sidebar';
-import { SnippetView } from './snippet-view';
 import { type Snippet } from '@/lib/data';
 import {
   AlertDialog,
@@ -24,17 +16,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
 import { EditSnippetForm } from './edit-snippet-form';
-import { Menu } from 'lucide-react';
+import { Menu, Plus, Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter, usePathname } from 'next/navigation';
-
+import { usePathname, useRouter } from 'next/navigation';
+import { SnippetView } from './snippet-view';
+import { Input } from '../ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { languages } from '@/lib/data';
+import { SnippetList } from './snippet-list';
 
 export function MainLayout({ initialSnippets, children }: { initialSnippets: Snippet[], children?: React.ReactNode }) {
   const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
   const [selectedSnippet, setSelectedSnippet] = useState<Snippet | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOption, setSortOption] = useState('newest');
+  const [languageFilter, setLanguageFilter] = useState('all');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -45,7 +42,6 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   const router = useRouter();
   const pathname = usePathname();
 
-
   const refetchData = () => {
      startTransition(async () => {
       const dbSnippets = await getSnippets();
@@ -54,23 +50,24 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
   }
 
   useEffect(() => {
-    refetchData();
-    if (pathname !== '/' && selectedSnippet) {
+    // If we navigate away from the dashboard, but a snippet is selected, unselect it.
+    if (pathname !== '/dashboard' && selectedSnippet) {
         setSelectedSnippet(null);
     }
-  }, [pathname]);
+  }, [pathname, selectedSnippet]);
 
   const filteredSnippets = useMemo(() => {
     return snippets
       .filter((snippet) => {
-        if (!searchTerm) return true;
         const lowerSearch = searchTerm.toLowerCase();
-        return (
+        const languageMatch = languageFilter === 'all' || snippet.language === languageFilter;
+        const searchMatch = (
           snippet.name.toLowerCase().includes(lowerSearch) ||
           snippet.code.toLowerCase().includes(lowerSearch) ||
           (snippet.description && snippet.description.toLowerCase().includes(lowerSearch)) ||
           snippet.tags.some((tag) => tag.toLowerCase().includes(lowerSearch))
         );
+        return languageMatch && searchMatch;
       })
       .sort((a, b) => {
         switch (sortOption) {
@@ -86,14 +83,15 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
             return 0;
         }
       });
-  }, [snippets, searchTerm, sortOption]);
+  }, [snippets, searchTerm, sortOption, languageFilter]);
 
   const handleSelectSnippet = (snippet: Snippet) => {
     setSelectedSnippet(snippet);
-    if(pathname !== '/') {
-        router.push('/dashboard');
-    }
   };
+  
+  const handleDeselectSnippet = () => {
+    setSelectedSnippet(null);
+  }
 
   const handleDeleteRequest = (id: string) => {
     setSnippetToDelete(id);
@@ -160,52 +158,78 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
     refetchData();
   };
   
-  const handleHomeNavigation = () => {
-    setSelectedSnippet(null);
-    router.push('/dashboard');
-  }
-
   return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-background text-foreground">
-        <Sidebar collapsible='icon'>
-          <AppSidebar
-            searchTerm={searchTerm}
-            onSearch={setSearchTerm}
-            sortOption={sortOption}
-            onSortChange={setSortOption}
-            onAddSnippet={handleAddSnippet}
-            snippets={filteredSnippets}
-            onSelectSnippet={handleSelectSnippet}
-            selectedSnippetId={selectedSnippet?._id || null}
-            onHomeNavigation={handleHomeNavigation}
-          />
-        </Sidebar>
-        <SidebarInset>
-           <main className="flex-1 h-full overflow-y-auto flex flex-col">
-              <div className="p-2 border-b">
-                <Button variant="ghost" size="icon" asChild>
-                  <SidebarTrigger>
-                    <Menu />
-                  </SidebarTrigger>
-                </Button>
-              </div>
-              {selectedSnippet ? (
-                 <div className="flex-1 flex flex-col h-full">
-                    <SnippetView
-                        snippet={selectedSnippet}
-                        onEdit={() => handleEditRequest(selectedSnippet)}
-                        onDelete={() => handleDeleteRequest(selectedSnippet._id)}
-                        onSave={onSnippetSaved}
+    <>
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        <header className="flex items-center justify-between gap-4 p-4 border-b">
+             <h1 className="text-xl font-bold tracking-tight text-accent">CodeKeep</h1>
+             <div className="flex-1 max-w-2xl">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search snippets by name, content, or tag..."
+                        className="pl-9 bg-muted/50 focus:bg-background"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                 </div>
-              ) : (
-                <div className="flex-1 p-4 md:p-8">
-                    {children}
                 </div>
-              )}
-            </main>
-        </SidebarInset>
+             </div>
+             <Button
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+                onClick={handleAddSnippet}
+                >
+                <Plus className="mr-2 h-4 w-4" />
+                <span>New Snippet</span>
+            </Button>
+        </header>
+
+        <main className="flex-1 overflow-y-auto">
+            {selectedSnippet ? (
+                <SnippetView
+                    snippet={selectedSnippet}
+                    onEdit={() => handleEditRequest(selectedSnippet)}
+                    onDelete={() => handleDeleteRequest(selectedSnippet._id)}
+                    onSave={onSnippetSaved}
+                    onBack={handleDeselectSnippet}
+                />
+            ) : (
+                <div className="p-4 md:p-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold">My Snippets</h2>
+                        <div className="flex items-center gap-2">
+                             <Select value={languageFilter} onValueChange={setLanguageFilter}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Filter by language" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Languages</SelectItem>
+                                    {languages.map(lang => (
+                                        <SelectItem key={lang} value={lang} className="capitalize">{lang}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select value={sortOption} onValueChange={setSortOption}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Sort by..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest">Newest</SelectItem>
+                                    <SelectItem value="oldest">Oldest</SelectItem>
+                                    <SelectItem value="a-z">A-Z</SelectItem>
+                                    <SelectItem value="z-a">Z-A</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                     <SnippetList 
+                        snippets={filteredSnippets} 
+                        onSelectSnippet={handleSelectSnippet}
+                        onEdit={handleEditRequest}
+                        onDelete={handleDeleteRequest}
+                    />
+                </div>
+            )}
+        </main>
       </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -252,7 +276,6 @@ export function MainLayout({ initialSnippets, children }: { initialSnippets: Sni
           )}
         </DialogContent>
       </Dialog>
-
-    </SidebarProvider>
+    </>
   );
 }

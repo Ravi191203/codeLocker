@@ -50,11 +50,11 @@ export function SnippetList({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onEdit(snippet)}>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(snippet); }}>
                     <Pencil className="mr-2 h-4 w-4" />
                     <span>Edit</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(snippet._id)} className="text-destructive">
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(snippet._id); }} className="text-destructive">
                      <Trash2 className="mr-2 h-4 w-4" />
                     <span>Delete</span>
                   </DropdownMenuItem>
@@ -68,7 +68,7 @@ export function SnippetList({
           </CardContent>
           <CardFooter className="p-4 pt-0">
              <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary" className="text-xs">{snippet.language}</Badge>
+                <Badge variant="secondary" className="text-xs capitalize">{snippet.language}</Badge>
                 {snippet.tags.slice(0, 3).map((tag) => (
                   <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
                 ))}

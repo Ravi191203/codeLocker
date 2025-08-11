@@ -6,7 +6,7 @@ import type { Bug, Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check, Eye, GitCompareArrows, Camera, Download } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check, Eye, GitCompareArrows, Camera, Download, ArrowLeft } from 'lucide-react';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
@@ -36,11 +36,12 @@ interface SnippetViewProps {
   onEdit: () => void;
   onDelete: () => void;
   onSave: () => void;
+  onBack: () => void;
 }
 
 const imageThemes = ['dark', 'light', 'synthwave', 'pastel', 'ocean', 'forest'] as const;
 
-export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave }: SnippetViewProps) {
+export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave, onBack }: SnippetViewProps) {
   const [snippet, setSnippet] = useState(initialSnippet);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
@@ -292,6 +293,10 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave 
   return (
     <>
       <div className="p-6 pb-0">
+         <Button variant="ghost" onClick={onBack} className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to all snippets
+         </Button>
         <div className="flex justify-between items-start gap-4">
             <div className='flex-1'>
                 <h2 className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</h2>
