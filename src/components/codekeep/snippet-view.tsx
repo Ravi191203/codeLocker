@@ -6,7 +6,7 @@ import type { Bug, Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check, Eye, GitCompareArrows, Camera, Download, ArrowLeft } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, ShieldCheck, History, Undo, Share2, Copy, Check, Eye, GitCompareArrows, Camera, Download, ArrowLeft, TestTube2 } from 'lucide-react';
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
@@ -30,6 +30,7 @@ import { Checkbox } from '../ui/checkbox';
 import DiffViewer from 'react-diff-viewer-continued';
 import { generateImageFromCode } from '@/ai/flows/generate-image-from-code';
 import Image from 'next/image';
+import { generateTests } from '@/ai/flows/generate-tests';
 
 interface SnippetViewProps {
   snippet: Snippet | null;
@@ -62,6 +63,8 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageTheme, setImageTheme] = useState<(typeof imageThemes)[number]>(imageThemes[0]);
+  const [generatedTests, setGeneratedTests] = useState<string | null>(null);
+  const [isGeneratingTests, setIsGeneratingTests] = useState(false);
 
 
   const { toast } = useToast();
@@ -75,6 +78,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
     setViewingVersion(null);
     setSelectedVersions([]);
     setGeneratedImage(null);
+    setGeneratedTests(null);
   }, [initialSnippet]);
 
   if (!snippet) {
@@ -287,6 +291,25 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
     }
   };
 
+  const handleGenerateTests = async () => {
+    if (!snippet) return;
+    setIsGeneratingTests(true);
+    setGeneratedTests(null);
+    try {
+      const result = await generateTests({ code: snippet.code, language: snippet.language });
+      setGeneratedTests(result.tests);
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Uh oh! Something went wrong.',
+        description: 'There was a problem generating tests.',
+      });
+    } finally {
+      setIsGeneratingTests(false);
+    }
+  };
+
 
   const shareUrl = snippet.isPublic && snippet.shareId ? `${window.location.origin}/s/${snippet.shareId}` : '';
 
@@ -370,6 +393,10 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
             <TabsTrigger value="bug-finder">
               <AlertTriangle className="h-4 w-4 mr-2" />
               Find Bugs
+            </TabsTrigger>
+            <TabsTrigger value="tests">
+              <TestTube2 className="h-4 w-4 mr-2" />
+              Tests
             </TabsTrigger>
             <TabsTrigger value="history" onClick={handleFetchVersions}>
               <History className="h-4 w-4 mr-2" />
@@ -509,6 +536,24 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
                     ))}
                     </div>
                 </ScrollArea>
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="tests">
+            <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+              <Button variant="outline" size="sm" onClick={handleGenerateTests} disabled={isGeneratingTests}>
+                {isGeneratingTests ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <TestTube2 className="h-4 w-4 mr-2" />
+                )}
+                {generatedTests ? 'Regenerate Tests' : 'Generate Tests'}
+              </Button>
+              {isGeneratingTests && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+              {generatedTests && (
+                <div className="h-full max-h-[300px] mt-4">
+                  <CodeBlock code={generatedTests} language={snippet.language === 'javascript' ? 'typescript' : snippet.language} className="h-full" />
+                </div>
               )}
             </div>
           </TabsContent>
