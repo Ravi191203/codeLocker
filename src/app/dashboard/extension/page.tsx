@@ -1,9 +1,10 @@
 import { getUser } from "@/app/actions";
 import { CopyButton } from "@/components/codekeep/copy-button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Code2 } from "lucide-react";
+import { Code2, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 export default async function ExtensionPage() {
     const user = await getUser();
@@ -25,8 +26,8 @@ export default async function ExtensionPage() {
                 <CardHeader>
                     <CardTitle>Configuration</CardTitle>
                     <CardDescription>
-                        Use the details below to set up the CodeKeep VS Code extension. 
-                        You can find the (hypothetical) extension on the Visual Studio Marketplace.
+                        This page provides the API details needed to connect a VS Code extension to your CodeKeep account.
+                        While a real extension isn't published yet, these credentials are fully functional for development.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -48,19 +49,26 @@ export default async function ExtensionPage() {
                             <CopyButton textToCopy={apiUrl} />
                         </div>
                          <p className="text-xs text-muted-foreground">
-                            This is the endpoint the extension will use to fetch your snippets.
+                            This is the endpoint the extension would use to fetch your snippets.
                         </p>
                     </div>
 
                     <div className="p-4 border rounded-lg space-y-3">
-                        <h4 className="font-semibold">Setup Instructions</h4>
+                        <h4 className="font-semibold">Example Setup Instructions</h4>
                         <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                            <li>Install the "CodeKeep Snippets" extension from the VS Code Marketplace.</li>
+                            <li>Find the "CodeKeep Snippets" extension on the VS Code Marketplace.</li>
                             <li>Open the command palette (Ctrl/Cmd + Shift + P) and run "CodeKeep: Configure API Key".</li>
                             <li>Paste your API Key when prompted.</li>
                             <li>Configure the API endpoint in the extension settings if it's different from the default.</li>
                             <li>Start searching and using your snippets directly from VS Code!</li>
                         </ol>
+                    </div>
+
+                    <div className="pt-4">
+                        <Button disabled>
+                           <ExternalLink className="mr-2 h-4 w-4" />
+                           View on Marketplace (Coming Soon)
+                        </Button>
                     </div>
 
                 </CardContent>
