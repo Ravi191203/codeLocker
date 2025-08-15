@@ -315,60 +315,65 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
 
   return (
     <>
-      <div className="p-6 pb-0">
-         <Button variant="ghost" onClick={onBack} className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to all snippets
-         </Button>
-        <div className="flex justify-between items-start gap-4">
-            <div className='flex-1'>
-                <h2 className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</h2>
-            </div>
-             <Popover>
-                <PopoverTrigger asChild>
-                <Button variant="outline" size="sm"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-96">
-                <div className="grid gap-4">
-                    <div className="space-y-2">
-                    <h4 className="font-medium leading-none">Share Snippet</h4>
-                    <p className="text-sm text-muted-foreground">
-                        Anyone with the link can view this snippet.
-                    </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <Switch
-                            id="sharing-switch"
-                            checked={snippet.isPublic}
-                            onCheckedChange={handleSharingChange}
-                            disabled={isSharing}
-                        />
-                        <Label htmlFor="sharing-switch">{isSharing ? 'Updating...' : (snippet.isPublic ? 'Sharing is On' : 'Sharing is Off')}</Label>
-                    </div>
-                    {snippet.isPublic && shareUrl && (
-                    <div className="space-y-2">
-                        <Label htmlFor="link">Public Link</Label>
-                        <div className="flex items-center gap-2">
-                            <Input id="link" value={shareUrl} readOnly className="h-8" />
-                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => copyToClipboard(shareUrl)}>
-                                {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                            </Button>
-                        </div>
-                    </div>
-                    )}
-                </div>
-                </PopoverContent>
-            </Popover>
-        </div>
-      </div>
-      <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-        <div>
-          <h3 className="font-semibold text-sm mb-2 text-muted-foreground uppercase tracking-wider">Description</h3>
-          <p className="text-sm text-foreground/80">{snippet.description}</p>
-        </div>
+      <div className="p-4 md:p-6 lg:p-8 flex flex-col gap-6">
+        <header className="space-y-4">
+          <Button variant="ghost" onClick={onBack} className="pl-0 h-auto p-0 text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to all snippets
+          </Button>
 
-        <div>
-           <h3 className="font-semibold text-sm mb-2 text-muted-foreground uppercase tracking-wider">Language & Tags</h3>
+          <div className="flex justify-between items-start gap-4">
+              <div className='flex-1 space-y-1.5'>
+                  <h1 className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</h1>
+                  <p className="text-sm text-muted-foreground">{snippet.description}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={onEdit}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button variant="destructive" size="sm" onClick={onDelete}>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm"><Share2 className="mr-2 h-4 w-4" /> Share</Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-96">
+                  <div className="grid gap-4">
+                      <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Share Snippet</h4>
+                      <p className="text-sm text-muted-foreground">
+                          Anyone with the link can view this snippet.
+                      </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                          <Switch
+                              id="sharing-switch"
+                              checked={snippet.isPublic}
+                              onCheckedChange={handleSharingChange}
+                              disabled={isSharing}
+                          />
+                          <Label htmlFor="sharing-switch">{isSharing ? 'Updating...' : (snippet.isPublic ? 'Sharing is On' : 'Sharing is Off')}</Label>
+                      </div>
+                      {snippet.isPublic && shareUrl && (
+                      <div className="space-y-2">
+                          <Label htmlFor="link">Public Link</Label>
+                          <div className="flex items-center gap-2">
+                              <Input id="link" value={shareUrl} readOnly className="h-8" />
+                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => copyToClipboard(shareUrl)}>
+                                  {hasCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                              </Button>
+                          </div>
+                      </div>
+                      )}
+                  </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
             {snippet.tags.map((tag) => (
@@ -377,303 +382,296 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
               </Badge>
             ))}
           </div>
-        </div>
-        
-        <Tabs defaultValue="code" className="space-y-4">
-          <TabsList className="w-full justify-start md:w-auto overflow-x-auto">
-            <TabsTrigger value="code">Code</TabsTrigger>
-            <TabsTrigger value="explanation">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Explain
-            </TabsTrigger>
-            <TabsTrigger value="converter">
-              <Languages className="h-4 w-4 mr-2" />
-              Convert
-            </TabsTrigger>
-            <TabsTrigger value="bug-finder">
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Find Bugs
-            </TabsTrigger>
-            <TabsTrigger value="tests">
-              <TestTube2 className="h-4 w-4 mr-2" />
-              Tests
-            </TabsTrigger>
-            <TabsTrigger value="history" onClick={handleFetchVersions}>
-              <History className="h-4 w-4 mr-2" />
-              History
-            </TabsTrigger>
-            <TabsTrigger value="image">
-              <Camera className="h-4 w-4 mr-2" />
-              Image
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="code">
-            <div className="h-full max-h-[400px]">
-              <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
-            </div>
-          </TabsContent>
-          <TabsContent value="explanation">
-            <div className="p-4 border rounded-md min-h-[400px]">
-              <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
-                {isExplaining ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 mr-2" />
-                )}
-                {explanation ? 'Regenerate Explanation' : 'Explain Code'}
-              </Button>
-              {isExplaining && !explanation && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-              {explanation && (
-                <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border rounded-lg p-4 bg-muted/50">
-                    <ReactMarkdown
-                    components={{
-                      code({ node, className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        return match ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus}
-                            language={match[1]}
-                            PreTag="div"
-                            customStyle={{
-                              backgroundColor: 'hsl(var(--background))',
-                              borderRadius: '0.5rem',
-                              padding: '1rem',
-                              margin: '1rem 0',
-                            }}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code className="bg-background rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                    }}
-                  >
-                    {explanation}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="converter">
-             <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
-                <div className="flex items-center gap-2">
-                  <Select onValueChange={setTargetLanguage} defaultValue={targetLanguage}>
-                    <SelectTrigger className="w-full md:w-[180px]">
-                      <SelectValue placeholder="Select language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {languages.filter(l => l !== snippet.language).map(lang => (
-                        <SelectItem key={lang} value={lang}>{lang}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="sm" onClick={handleConvertCode} disabled={isConverting}>
-                    {isConverting ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Languages className="h-4 w-4 mr-2" />
-                    )}
-                    Convert
-                  </Button>
-                </div>
+        </header>
 
-                {(isConverting || convertedCode) && (
-                  <div className="mt-4">
-                    {isConverting && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-                    {convertedCode && (
-                       <div className="space-y-2">
-                        <div className="flex justify-end">
-                            <Button variant="outline" size="sm" onClick={handleSaveConvertedCode} disabled={isSaving}>
-                                {isSaving ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                    <Save className="h-4 w-4 mr-2" />
-                                )}
-                                Save as New Snippet
-                            </Button>
-                        </div>
-                         <div className="h-full max-h-[300px] mt-2">
-                           <CodeBlock code={convertedCode} language={targetLanguage} className="h-full" />
-                         </div>
-                       </div>
-                    )}
+        <main className="flex-1 space-y-6 overflow-y-auto">
+          <Tabs defaultValue="code" className="space-y-4">
+            <TabsList className="w-full justify-start md:w-auto overflow-x-auto">
+              <TabsTrigger value="code">Code</TabsTrigger>
+              <TabsTrigger value="explanation">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Explain
+              </TabsTrigger>
+              <TabsTrigger value="converter">
+                <Languages className="h-4 w-4 mr-2" />
+                Convert
+              </TabsTrigger>
+              <TabsTrigger value="bug-finder">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Find Bugs
+              </TabsTrigger>
+              <TabsTrigger value="tests">
+                <TestTube2 className="h-4 w-4 mr-2" />
+                Tests
+              </TabsTrigger>
+              <TabsTrigger value="history" onClick={handleFetchVersions}>
+                <History className="h-4 w-4 mr-2" />
+                History
+              </TabsTrigger>
+              <TabsTrigger value="image">
+                <Camera className="h-4 w-4 mr-2" />
+                Image
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="code">
+              <div className="h-full max-h-[500px] min-h-[300px]">
+                <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
+              </div>
+            </TabsContent>
+            <TabsContent value="explanation">
+              <div className="p-4 border rounded-md min-h-[400px]">
+                <Button variant="outline" size="sm" onClick={handleExplainCode} disabled={isExplaining}>
+                  {isExplaining ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  {explanation ? 'Regenerate Explanation' : 'Explain Code'}
+                </Button>
+                {isExplaining && !explanation && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+                {explanation && (
+                  <div className="prose prose-sm dark:prose-invert max-w-none mt-4 border rounded-lg p-4 bg-muted/50">
+                      <ReactMarkdown
+                      components={{
+                        code({ node, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '');
+                          return match ? (
+                            <SyntaxHighlighter
+                              style={vscDarkPlus}
+                              language={match[1]}
+                              PreTag="div"
+                              customStyle={{
+                                backgroundColor: 'hsl(var(--background))',
+                                borderRadius: '0.5rem',
+                                padding: '1rem',
+                                margin: '1rem 0',
+                              }}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code className="bg-background rounded-md px-1 py-0.5 font-mono text-sm" {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {explanation}
+                    </ReactMarkdown>
                   </div>
                 )}
-             </div>
-          </TabsContent>
-          <TabsContent value="bug-finder">
-            <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
-              <Button variant="outline" size="sm" onClick={handleFindBugs} disabled={isFindingBugs}>
-                {isFindingBugs ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                )}
-                {bugs ? 'Scan Again' : 'Find Bugs'}
-              </Button>
-              {isFindingBugs && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-              {bugs && bugs.length === 0 && (
-                 <Alert className="mt-4">
-                    <ShieldCheck className="h-4 w-4" />
-                    <AlertTitle>No Bugs Found!</AlertTitle>
-                    <AlertDescription>
-                        The AI assistant did not find any obvious bugs in this snippet.
-                    </AlertDescription>
-                </Alert>
-              )}
-              {bugs && bugs.length > 0 && (
-                <ScrollArea className="mt-4 h-[300px] space-y-4">
-                    <div className="space-y-4 pr-4">
-                    {bugs.map((bug, index) => (
-                        <Alert key={index} variant="destructive">
-                            <AlertTriangle className="h-4 w-4" />
-                            <AlertTitle>Line {bug.line}: {bug.bug}</AlertTitle>
-                            <AlertDescription>{bug.suggestion}</AlertDescription>
-                        </Alert>
-                    ))}
-                    </div>
-                </ScrollArea>
-              )}
-            </div>
-          </TabsContent>
-          <TabsContent value="tests">
-            <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
-              <Button variant="outline" size="sm" onClick={handleGenerateTests} disabled={isGeneratingTests}>
-                {isGeneratingTests ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <TestTube2 className="h-4 w-4 mr-2" />
-                )}
-                {generatedTests ? 'Regenerate Tests' : 'Generate Tests'}
-              </Button>
-              {isGeneratingTests && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-              {generatedTests && (
-                <div className="h-full max-h-[300px] mt-4">
-                  <CodeBlock code={generatedTests} language={snippet.language === 'javascript' ? 'typescript' : snippet.language} className="h-full" />
-                </div>
-              )}
-            </div>
-          </TabsContent>
-           <TabsContent value="history">
-                <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
-                  <div className="flex justify-end">
-                    <Button
-                        size="sm"
-                        onClick={handleCompareVersions}
-                        disabled={selectedVersions.length !== 2}
-                    >
-                        <GitCompareArrows className="h-4 w-4 mr-2" />
-                        Compare Versions
+              </div>
+            </TabsContent>
+            <TabsContent value="converter">
+              <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={setTargetLanguage} defaultValue={targetLanguage}>
+                      <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {languages.filter(l => l !== snippet.language).map(lang => (
+                          <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button variant="outline" size="sm" onClick={handleConvertCode} disabled={isConverting}>
+                      {isConverting ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Languages className="h-4 w-4 mr-2" />
+                      )}
+                      Convert
                     </Button>
                   </div>
-                {isFetchingVersions && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
-                {!isFetchingVersions && versions.length === 0 && (
-                    <Alert>
-                        <History className="h-4 w-4" />
-                        <AlertTitle>No History Found</AlertTitle>
-                        <AlertDescription>
-                            There are no saved versions for this snippet yet. Edit and save the snippet to create a version.
-                        </AlertDescription>
-                    </Alert>
-                )}
-                {!isFetchingVersions && versions.length > 0 && (
-                    <ScrollArea className="h-[300px]">
-                        <div className="space-y-2 pr-4">
-                            {versions.map(version => (
-                                <div key={version._id} className="p-3 rounded-md bg-muted/50 flex justify-between items-center">
-                                    <div className="flex items-center gap-4">
-                                      <Checkbox
-                                          id={`version-${version._id}`}
-                                          checked={selectedVersions.some(v => v._id === version._id)}
-                                          onCheckedChange={() => handleVersionSelection(version)}
-                                          disabled={
-                                            selectedVersions.length >= 2 && !selectedVersions.some(v => v._id === version._id)
-                                          }
-                                      />
-                                      <div>
-                                          <p className="font-semibold text-sm">{version.name}</p>
-                                          <p className="text-xs text-muted-foreground">
-                                              Saved {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
-                                          </p>
-                                      </div>
-                                    </div>
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setViewingVersion(version)}
-                                    >
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        View
-                                    </Button>
-                                </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                )}
-                </div>
-          </TabsContent>
-           <TabsContent value="image">
-                <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
-                    <div className="flex items-center gap-2">
-                        <Select onValueChange={(value) => setImageTheme(value as typeof imageThemes[number])} defaultValue={imageTheme}>
-                            <SelectTrigger className="w-full md:w-[180px]">
-                                <SelectValue placeholder="Select theme" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {imageThemes.map(theme => (
-                                    <SelectItem key={theme} value={theme} className="capitalize">{theme}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button variant="outline" size="sm" onClick={handleGenerateImage} disabled={isGeneratingImage}>
-                            {isGeneratingImage ? (
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            ) : (
-                                <Camera className="h-4 w-4 mr-2" />
-                            )}
-                            Generate Image
-                        </Button>
-                    </div>
 
-                    {(isGeneratingImage || generatedImage) && (
-                        <div className="mt-4 rounded-lg bg-muted/50 p-4 flex items-center justify-center min-h-[300px]">
-                            {isGeneratingImage && <div className="text-sm text-muted-foreground flex flex-col items-center gap-2"><Loader2 className="h-8 w-8 animate-spin" /><span>Generating your image...</span></div>}
-                            {generatedImage && (
-                                <div className="space-y-4 flex flex-col items-center">
-                                    <Image
-                                        src={generatedImage}
-                                        alt="Generated code snippet"
-                                        width={800}
-                                        height={400}
-                                        className="rounded-lg shadow-lg border"
-                                    />
-                                    <a href={generatedImage} download={`${snippet.name.replace(/\s/g, '_')}.png`}>
-                                        <Button size="sm">
-                                            <Download className="h-4 w-4 mr-2" />
-                                            Download Image
-                                        </Button>
-                                    </a>
-                                </div>
-                            )}
+                  {(isConverting || convertedCode) && (
+                    <div className="mt-4">
+                      {isConverting && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+                      {convertedCode && (
+                        <div className="space-y-2">
+                          <div className="flex justify-end">
+                              <Button variant="outline" size="sm" onClick={handleSaveConvertedCode} disabled={isSaving}>
+                                  {isSaving ? (
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  ) : (
+                                      <Save className="h-4 w-4 mr-2" />
+                                  )}
+                                  Save as New Snippet
+                              </Button>
+                          </div>
+                          <div className="h-full max-h-[300px] mt-2">
+                            <CodeBlock code={convertedCode} language={targetLanguage} className="h-full" />
+                          </div>
                         </div>
-                    )}
-                </div>
-          </TabsContent>
-        </Tabs>
+                      )}
+                    </div>
+                  )}
+              </div>
+            </TabsContent>
+            <TabsContent value="bug-finder">
+              <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+                <Button variant="outline" size="sm" onClick={handleFindBugs} disabled={isFindingBugs}>
+                  {isFindingBugs ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                  )}
+                  {bugs ? 'Scan Again' : 'Find Bugs'}
+                </Button>
+                {isFindingBugs && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+                {bugs && bugs.length === 0 && (
+                  <Alert className="mt-4">
+                      <ShieldCheck className="h-4 w-4" />
+                      <AlertTitle>No Bugs Found!</AlertTitle>
+                      <AlertDescription>
+                          The AI assistant did not find any obvious bugs in this snippet.
+                      </AlertDescription>
+                  </Alert>
+                )}
+                {bugs && bugs.length > 0 && (
+                  <ScrollArea className="mt-4 h-[300px] space-y-4">
+                      <div className="space-y-4 pr-4">
+                      {bugs.map((bug, index) => (
+                          <Alert key={index} variant="destructive">
+                              <AlertTriangle className="h-4 w-4" />
+                              <AlertTitle>Line {bug.line}: {bug.bug}</AlertTitle>
+                              <AlertDescription>{bug.suggestion}</AlertDescription>
+                          </Alert>
+                      ))}
+                      </div>
+                  </ScrollArea>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="tests">
+              <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+                <Button variant="outline" size="sm" onClick={handleGenerateTests} disabled={isGeneratingTests}>
+                  {isGeneratingTests ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <TestTube2 className="h-4 w-4 mr-2" />
+                  )}
+                  {generatedTests ? 'Regenerate Tests' : 'Generate Tests'}
+                </Button>
+                {isGeneratingTests && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+                {generatedTests && (
+                  <div className="h-full max-h-[300px] mt-4">
+                    <CodeBlock code={generatedTests} language={snippet.language === 'javascript' ? 'typescript' : snippet.language} className="h-full" />
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+            <TabsContent value="history">
+                  <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+                    <div className="flex justify-end">
+                      <Button
+                          size="sm"
+                          onClick={handleCompareVersions}
+                          disabled={selectedVersions.length !== 2}
+                      >
+                          <GitCompareArrows className="h-4 w-4 mr-2" />
+                          Compare Versions
+                      </Button>
+                    </div>
+                  {isFetchingVersions && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+                  {!isFetchingVersions && versions.length === 0 && (
+                      <Alert>
+                          <History className="h-4 w-4" />
+                          <AlertTitle>No History Found</AlertTitle>
+                          <AlertDescription>
+                              There are no saved versions for this snippet yet. Edit and save the snippet to create a version.
+                          </AlertDescription>
+                      </Alert>
+                  )}
+                  {!isFetchingVersions && versions.length > 0 && (
+                      <ScrollArea className="h-[300px]">
+                          <div className="space-y-2 pr-4">
+                              {versions.map(version => (
+                                  <div key={version._id} className="p-3 rounded-md bg-muted/50 flex justify-between items-center">
+                                      <div className="flex items-center gap-4">
+                                        <Checkbox
+                                            id={`version-${version._id}`}
+                                            checked={selectedVersions.some(v => v._id === version._id)}
+                                            onCheckedChange={() => handleVersionSelection(version)}
+                                            disabled={
+                                              selectedVersions.length >= 2 && !selectedVersions.some(v => v._id === version._id)
+                                            }
+                                        />
+                                        <div>
+                                            <p className="font-semibold text-sm">{version.name}</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Saved {formatDistanceToNow(new Date(version.createdAt), { addSuffix: true })}
+                                            </p>
+                                        </div>
+                                      </div>
+                                      <Button
+                                          size="sm"
+                                          variant="outline"
+                                          onClick={() => setViewingVersion(version)}
+                                      >
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          View
+                                      </Button>
+                                  </div>
+                              ))}
+                          </div>
+                      </ScrollArea>
+                  )}
+                  </div>
+            </TabsContent>
+            <TabsContent value="image">
+                  <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+                      <div className="flex items-center gap-2">
+                          <Select onValueChange={(value) => setImageTheme(value as typeof imageThemes[number])} defaultValue={imageTheme}>
+                              <SelectTrigger className="w-full md:w-[180px]">
+                                  <SelectValue placeholder="Select theme" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {imageThemes.map(theme => (
+                                      <SelectItem key={theme} value={theme} className="capitalize">{theme}</SelectItem>
+                                  ))}
+                              </SelectContent>
+                          </Select>
+                          <Button variant="outline" size="sm" onClick={handleGenerateImage} disabled={isGeneratingImage}>
+                              {isGeneratingImage ? (
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              ) : (
+                                  <Camera className="h-4 w-4 mr-2" />
+                              )}
+                              Generate Image
+                          </Button>
+                      </div>
+
+                      {(isGeneratingImage || generatedImage) && (
+                          <div className="mt-4 rounded-lg bg-muted/50 p-4 flex items-center justify-center min-h-[300px]">
+                              {isGeneratingImage && <div className="text-sm text-muted-foreground flex flex-col items-center gap-2"><Loader2 className="h-8 w-8 animate-spin" /><span>Generating your image...</span></div>}
+                              {generatedImage && (
+                                  <div className="space-y-4 flex flex-col items-center">
+                                      <Image
+                                          src={generatedImage}
+                                          alt="Generated code snippet"
+                                          width={800}
+                                          height={400}
+                                          className="rounded-lg shadow-lg border"
+                                      />
+                                      <a href={generatedImage} download={`${snippet.name.replace(/\s/g, '_')}.png`}>
+                                          <Button size="sm">
+                                              <Download className="h-4 w-4 mr-2" />
+                                              Download Image
+                                          </Button>
+                                      </a>
+                                  </div>
+                              )}
+                          </div>
+                      )}
+                  </div>
+            </TabsContent>
+          </Tabs>
+        </main>
       </div>
-      <div className="flex items-center justify-end gap-2 p-6 border-t pt-4 bg-muted/50">
-          <Button variant="destructive" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
-           <Button variant="outline" size="sm" onClick={onEdit}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-      </div>
+      
 
        <Dialog open={!!viewingVersion} onOpenChange={(open) => !open && setViewingVersion(null)}>
         <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col">
@@ -762,3 +760,4 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
     </>
   );
 }
+
