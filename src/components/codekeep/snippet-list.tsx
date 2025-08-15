@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Snippet } from '@/lib/data';
@@ -7,6 +8,8 @@ import { FileCode, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import React from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface SnippetListProps {
   snippets: Snippet[];
@@ -79,9 +82,26 @@ export function SnippetList({
                     </DropdownMenu>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 flex-grow" onClick={() => onSelectSnippet(snippet)}>
-                    <div className="bg-muted/50 rounded-md p-2 text-xs font-mono text-muted-foreground line-clamp-4">
-                      {snippet.code}
-                    </div>
+                  <div className="h-24 overflow-hidden rounded-md bg-muted/50">
+                    <SyntaxHighlighter
+                        language={snippet.language}
+                        style={vscDarkPlus}
+                        customStyle={{
+                          margin: 0,
+                          padding: '0.5rem',
+                          height: '100%',
+                          backgroundColor: 'transparent',
+                          fontSize: '12px',
+                        }}
+                        codeTagProps={{
+                          style: {
+                            fontFamily: 'var(--font-code)',
+                          }
+                        }}
+                      >
+                        {snippet.code}
+                      </SyntaxHighlighter>
+                  </div>
                 </CardContent>
                 <CardFooter className="p-4 pt-0">
                    <div className="flex items-center gap-2 flex-wrap">
