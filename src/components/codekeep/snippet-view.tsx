@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useTransition } from 'react';
@@ -10,7 +9,7 @@ import { Pencil, Trash2, Sparkles, Loader2, Languages, Save, AlertTriangle, Shie
 import { explainCode } from '@/ai/flows/explain-code';
 import { convertCode } from '@/ai/flows/convert-code';
 import { findBugs } from '@/ai/flows/find-bugs';
-import { addSnippet, getSnippetVersions, restoreSnippetVersion, updateSnippetSharing } from '@/app/actions';
+import { addSnippet, deleteSnippet, getSnippetVersions, restoreSnippetVersion, updateSnippetSharing } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -31,28 +30,37 @@ import DiffViewer from 'react-diff-viewer-continued';
 import { generateImageFromCode } from '@/ai/flows/generate-image-from-code';
 import Image from 'next/image';
 import { generateTests } from '@/ai/flows/generate-tests';
+import { useRouter } from 'next/navigation';
+import { EditSnippetForm } from './edit-snippet-form';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface SnippetViewProps {
-  snippet: Snippet | null;
-  onEdit: () => void;
-  onDelete: () => void;
-  onSave: () => void;
-  onBack: () => void;
+  snippet: Snippet;
+  initialVersions: SnippetVersion[];
 }
 
 const imageThemes = ['dark', 'light', 'synthwave', 'pastel', 'ocean', 'forest'] as const;
 
-export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave, onBack }: SnippetViewProps) {
+export function SnippetView({ snippet: initialSnippet, initialVersions }: SnippetViewProps) {
   const [snippet, setSnippet] = useState(initialSnippet);
   const [explanation, setExplanation] = useState<string | null>(null);
   const [isExplaining, setIsExplaining] = useState(false);
   const [convertedCode, setConvertedCode] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSavingConverted, setIsSavingConverted] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState<string>(languages[0]);
   const [bugs, setBugs] = useState<Bug[] | null>(null);
   const [isFindingBugs, setIsFindingBugs] = useState(false);
-  const [versions, setVersions] = useState<SnippetVersion[]>([]);
+  const [versions, setVersions] = useState<SnippetVersion[]>(initialVersions);
   const [isFetchingVersions, setIsFetchingVersions] = useState(false);
   const [isRestoring, setIsRestoring] = useState<string | null>(null);
   const [isSharing, startSharingTransition] = useTransition();
@@ -65,21 +73,24 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
   const [imageTheme, setImageTheme] = useState<(typeof imageThemes)[number]>(imageThemes[0]);
   const [generatedTests, setGeneratedTests] = useState<string | null>(null);
   const [isGeneratingTests, setIsGeneratingTests] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
 
-
+  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     setSnippet(initialSnippet);
+    setVersions(initialVersions);
     setExplanation(null);
     setConvertedCode(null);
     setBugs(null);
-    setVersions([]);
     setViewingVersion(null);
     setSelectedVersions([]);
     setGeneratedImage(null);
     setGeneratedTests(null);
-  }, [initialSnippet]);
+  }, [initialSnippet, initialVersions]);
 
   if (!snippet) {
     return null;
@@ -129,7 +140,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
 
   const handleSaveConvertedCode = async () => {
     if (!snippet || !convertedCode || !targetLanguage) return;
-    setIsSaving(true);
+    setIsSavingConverted(true);
     try {
       await addSnippet({
         name: `${snippet.name} (converted to ${targetLanguage})`,
@@ -142,7 +153,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
         title: 'Snippet saved!',
         description: 'The converted snippet has been added to your collection.',
       });
-      onSave();
+      router.refresh();
     } catch (error) {
       console.error(error);
       toast({
@@ -151,7 +162,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
         description: 'There was a problem saving the new snippet.',
       });
     } finally {
-      setIsSaving(false);
+      setIsSavingConverted(false);
     }
   };
 
@@ -201,7 +212,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
             description: 'The snippet has been restored to the selected version.',
         });
         setViewingVersion(null);
-        onSave(); // This will trigger a refetch and update the view
+        router.refresh();
     } catch (error) {
         console.error(error);
         toast({
@@ -251,7 +262,6 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
         if (prev.length < 2) {
             return [...prev, version];
         }
-        // If 2 are already selected, replace the last one
         return [prev[0], version];
     });
   };
@@ -310,6 +320,32 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
     }
   };
 
+  const handleDeleteConfirm = () => {
+    startDeleteTransition(async () => {
+      try {
+        await deleteSnippet(snippet._id);
+        toast({
+          title: 'Snippet deleted',
+          description: 'The snippet has been permanently deleted.',
+        });
+        setDeleteDialogOpen(false);
+        router.push('/dashboard');
+        router.refresh();
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong.",
+          description: "Could not delete the snippet.",
+        });
+      }
+    });
+  };
+
+  const onSnippetUpdated = () => {
+    setEditDialogOpen(false);
+    router.refresh();
+  }
+
 
   const shareUrl = snippet.isPublic && snippet.shareId ? `${window.location.origin}/s/${snippet.shareId}` : '';
 
@@ -317,7 +353,7 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
     <>
       <div className="p-4 md:p-6 lg:p-8 flex flex-col gap-6">
         <header className="space-y-4">
-          <Button variant="ghost" onClick={onBack} className="pl-0 h-auto p-0 text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" onClick={() => router.push('/dashboard')} className="pl-0 h-auto p-0 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to all snippets
           </Button>
@@ -328,11 +364,11 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
                   <p className="text-sm text-muted-foreground">{snippet.description}</p>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={onEdit}>
+                <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-                <Button variant="destructive" size="sm" onClick={onDelete}>
+                <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
@@ -492,8 +528,8 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
                       {convertedCode && (
                         <div className="space-y-2">
                           <div className="flex justify-end">
-                              <Button variant="outline" size="sm" onClick={handleSaveConvertedCode} disabled={isSaving}>
-                                  {isSaving ? (
+                              <Button variant="outline" size="sm" onClick={handleSaveConvertedCode} disabled={isSavingConverted}>
+                                  {isSavingConverted ? (
                                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                                   ) : (
                                       <Save className="h-4 w-4 mr-2" />
@@ -671,6 +707,35 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
           </Tabs>
         </main>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this snippet from your collection.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Edit Snippet</DialogTitle>
+          </DialogHeader>
+          <EditSnippetForm
+            snippet={snippet}
+            onSuccess={onSnippetUpdated}
+          />
+        </DialogContent>
+      </Dialog>
       
 
        <Dialog open={!!viewingVersion} onOpenChange={(open) => !open && setViewingVersion(null)}>
@@ -760,4 +825,3 @@ export function SnippetView({ snippet: initialSnippet, onEdit, onDelete, onSave,
     </>
   );
 }
-
