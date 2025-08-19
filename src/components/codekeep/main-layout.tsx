@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { Input } from '../ui/input';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-export function MainLayout({ children }: { children?: React.ReactNode }) {
+export function MainLayout({ children }: { children?: React.ReactNode, initialSnippets: Snippet[] }) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -46,7 +46,7 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
     <>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <header className="flex items-center justify-between gap-4 p-4 border-b">
-             <Link href="/dashboard" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
+             <Link href="/" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
                 <Code2 />
                 CodeKeep
              </Link>
@@ -65,13 +65,13 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
              </div>
              <div className="flex items-center gap-2">
                 <Button variant="ghost" asChild>
-                    <Link href="/dashboard/analytics" className="flex items-center gap-2">
+                    <Link href="/analytics" className="flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" />
                         Analytics
                     </Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                    <Link href="/dashboard/extension">VS Code</Link>
+                    <Link href="/extension">VS Code</Link>
                 </Button>
                 <Button
                     className="bg-accent text-accent-foreground hover:bg-accent/90"

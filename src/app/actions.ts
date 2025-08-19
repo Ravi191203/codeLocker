@@ -31,7 +31,6 @@ export async function addSnippet(data: {
   const newSnippet = new Snippet(snippetData);
   await newSnippet.save();
   revalidatePath('/');
-  revalidatePath('/dashboard');
 }
 
 export async function updateSnippet(id: string, data: {
@@ -65,8 +64,7 @@ export async function updateSnippet(id: string, data: {
 
     await Snippet.findByIdAndUpdate(id, updateData);
     revalidatePath('/');
-    revalidatePath(`/snippet/${id}/history`);
-    revalidatePath('/dashboard');
+    revalidatePath(`/snippet/${id}`);
 }
 
 export async function deleteSnippet(id: string) {
@@ -85,7 +83,6 @@ export async function deleteSnippet(id: string) {
     session.endSession();
   }
   revalidatePath('/');
-  revalidatePath('/dashboard');
 }
 
 export async function getSnippetVersions(snippetId: string) {
@@ -129,9 +126,8 @@ export async function restoreSnippetVersion(versionId: string) {
     await Snippet.findByIdAndUpdate(version.snippetId, updateData);
 
     revalidatePath('/');
-    revalidatePath(`/snippet/${version.snippetId}/history`);
+    revalidatePath(`/snippet/${version.snippetId}`);
     revalidatePath(`/s/${currentSnippet.shareId}`);
-    revalidatePath('/dashboard');
 }
 
 export async function updateSnippetSharing(id: string, isPublic: boolean) {

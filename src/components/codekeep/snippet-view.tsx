@@ -94,7 +94,7 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
           description: 'The snippet has been permanently deleted.',
         });
         setDeleteDialogOpen(false);
-        router.push('/dashboard');
+        router.push('/');
         router.refresh();
       } catch (error) {
         toast({
@@ -118,7 +118,7 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
     <>
       <div className="p-4 md:p-6 lg:p-8 flex flex-col gap-6">
         <header className="space-y-4">
-          <Button variant="ghost" onClick={() => router.push('/dashboard')} className="pl-0 h-auto p-0 text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" onClick={() => router.push('/')} className="pl-0 h-auto p-0 text-muted-foreground hover:text-foreground">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to all snippets
           </Button>
