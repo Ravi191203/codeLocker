@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition, Suspense } from 'react';
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { SnippetList } from '@/components/codekeep/snippet-list';
 import { languages, type Snippet } from '@/lib/data';
@@ -20,7 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { EditSnippetForm } from '@/components/codekeep/edit-snippet-form';
 import { useToast } from '@/hooks/use-toast';
 
-export default function DashboardPage() {
+function HomePageContent() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
@@ -212,4 +213,12 @@ export default function DashboardPage() {
       </Dialog>
     </>
   );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <HomePageContent />
+    </Suspense>
+  )
 }
