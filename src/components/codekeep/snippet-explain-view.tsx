@@ -9,7 +9,7 @@ import type { Snippet } from '@/lib/data';
 import { explainCode } from '@/ai/flows/explain-code';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface SnippetExplainViewProps {
   snippet: Snippet;
@@ -57,7 +57,7 @@ export function SnippetExplainView({ snippet }: SnippetExplainViewProps) {
                 const match = /language-(\w+)/.exec(className || '');
                 return match ? (
                   <SyntaxHighlighter
-                    style={vscDarkPlus}
+                    style={oneDark}
                     language={match[1]}
                     PreTag="div"
                     customStyle={{

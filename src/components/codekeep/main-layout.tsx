@@ -1,26 +1,21 @@
 "use client";
 
-import React, { useState, useTransition } from 'react';
-import { type Snippet } from '@/lib/data';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { getSnippets } from '@/app/actions';
 import { AddSnippetForm } from './add-snippet-form';
-import { Code2, Plus, Search, BarChart3 } from 'lucide-react';
+import { Code2, Plus, BarChart3 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Input } from '../ui/input';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-export function MainLayout({ children }: { children?: React.ReactNode, initialSnippets: Snippet[] }) {
+export function MainLayout({ children }: { children?: React.ReactNode }) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
   const onSnippetAdded = () => {
     setAddDialogOpen(false);
-    // Instead of refetching here, we rely on server actions revalidating the path
-    // and Next.js router cache to update the UI.
      router.refresh();
       toast({
         title: "Snippet created!",

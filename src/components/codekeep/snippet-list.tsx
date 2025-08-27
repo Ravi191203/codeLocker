@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Button } from '../ui/button';
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface SnippetListProps {
   snippets: Snippet[];
@@ -85,7 +85,7 @@ export function SnippetList({
                   <div className="h-24 overflow-hidden rounded-md bg-muted/50">
                     <SyntaxHighlighter
                         language={snippet.language}
-                        style={vscDarkPlus}
+                        style={oneDark}
                         customStyle={{
                           margin: 0,
                           padding: '0.5rem',

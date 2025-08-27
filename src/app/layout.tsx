@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
-import { getSnippets } from './actions';
 import { MainLayout } from '@/components/codekeep/main-layout';
 
 export const metadata: Metadata = {
@@ -10,12 +9,11 @@ export const metadata: Metadata = {
   description: 'Your personal code snippet manager.',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const snippets = await getSnippets();
   
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
@@ -34,7 +32,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <MainLayout initialSnippets={snippets}>
+          <MainLayout>
             {children}
           </MainLayout>
           <Toaster />

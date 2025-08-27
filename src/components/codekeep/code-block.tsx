@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface CodeBlockProps {
   code: string;
@@ -48,7 +48,7 @@ export function CodeBlock({ code, language, className }: CodeBlockProps) {
       </Button>
       <SyntaxHighlighter
         language={language}
-        style={vscDarkPlus}
+        style={oneDark}
         showLineNumbers
         customStyle={{ 
             margin: 0, 
