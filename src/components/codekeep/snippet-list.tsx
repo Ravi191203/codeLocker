@@ -4,7 +4,7 @@
 import type { Snippet } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
-import { FileCode, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { FileCode, Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import React from 'react';
@@ -13,6 +13,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface SnippetListProps {
   snippets: Snippet[];
+  loading?: boolean;
   onSelectSnippet: (snippet: Snippet) => void;
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
@@ -20,10 +21,20 @@ interface SnippetListProps {
 
 export function SnippetList({
   snippets,
+  loading,
   onSelectSnippet,
   onEdit,
   onDelete
 }: SnippetListProps) {
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
+        <Loader2 className="w-16 h-16 mb-4 animate-spin" />
+        <h3 className="text-lg font-semibold">Loading Snippets...</h3>
+      </div>
+    );
+  }
+  
   if (snippets.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
