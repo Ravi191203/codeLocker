@@ -10,26 +10,12 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Input } from '../ui/input';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function MainLayout({ children }: { children?: React.ReactNode, initialSnippets: Snippet[] }) {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      const params = new URLSearchParams(searchParams);
-      if (searchTerm) {
-          params.set('q', searchTerm);
-      } else {
-          params.delete('q');
-      }
-      router.push(`${pathname}?${params.toString()}`);
-  }
 
   const onSnippetAdded = () => {
     setAddDialogOpen(false);
@@ -50,19 +36,6 @@ export function MainLayout({ children }: { children?: React.ReactNode, initialSn
                 <Code2 />
                 CodeKeep
              </Link>
-             <div className="flex-1 max-w-2xl">
-                <form onSubmit={handleSearch}>
-                  <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                          placeholder="Search snippets by name, content, or tag..."
-                          className="pl-9 bg-muted/50 focus:bg-background"
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                  </div>
-                </form>
-             </div>
              <div className="flex items-center gap-2">
                 <Button variant="ghost" asChild>
                     <Link href="/analytics" className="flex items-center gap-2">

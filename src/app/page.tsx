@@ -1,12 +1,12 @@
 
 "use client"
 
-import { useEffect, useMemo, useState, useTransition, Suspense } from 'react';
+import { Suspense, useEffect, useMemo, useState, useTransition } from 'react';
 import { getSnippets, deleteSnippet } from '@/app/actions';
 import { SnippetList } from '@/components/codekeep/snippet-list';
 import { languages, type Snippet } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,17 +20,18 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EditSnippetForm } from '@/components/codekeep/edit-snippet-form';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 function HomePageContent() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isPending, startTransition] = useTransition();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
 
-  const [sortOption, setSortOption] = useState(searchParams.get('sort') || 'newest');
-  const [languageFilter, setLanguageFilter] = useState(searchParams.get('lang') || 'all');
-  const searchTerm = searchParams.get('q') || '';
+  const [sortOption, setSortOption] = useState('newest');
+  const [languageFilter, setLanguageFilter] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
@@ -45,25 +46,12 @@ function HomePageContent() {
     });
   }, []);
 
-  const handleFilterChange = (type: 'sort' | 'lang', value: string) => {
-    const params = new URLSearchParams(searchParams);
-    if (value === 'all' || !value) {
-      params.delete(type);
-    } else {
-      params.set(type, value);
-    }
-    router.push(`?${params.toString()}`);
-
-    if (type === 'sort') setSortOption(value);
-    if (type === 'lang') setLanguageFilter(value);
-  }
-
   const filteredSnippets = useMemo(() => {
     return snippets
       .filter((snippet) => {
         const lowerSearch = searchTerm.toLowerCase();
         const languageMatch = languageFilter === 'all' || snippet.language === languageFilter;
-        const searchMatch = (
+        const searchMatch = !lowerSearch || (
           snippet.name.toLowerCase().includes(lowerSearch) ||
           snippet.code.toLowerCase().includes(lowerSearch) ||
           (snippet.description && snippet.description.toLowerCase().includes(lowerSearch)) ||
@@ -143,10 +131,20 @@ function HomePageContent() {
   return (
     <>
       <div className="p-4 md:p-8">
-        <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">My Snippets</h2>
-            <div className="flex items-center gap-2">
-                 <Select value={languageFilter} onValueChange={(v) => handleFilterChange('lang', v)}>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <div className="w-full flex-1">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search snippets by name, content, or tag..."
+                        className="pl-9 w-full bg-muted/50 focus:bg-background"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+            </div>
+            <div className="flex items-center gap-2 w-full md:w-auto">
+                 <Select value={languageFilter} onValueChange={setLanguageFilter}>
                     <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Filter by language" />
                     </SelectTrigger>
@@ -157,7 +155,7 @@ function HomePageContent() {
                         ))}
                     </SelectContent>
                 </Select>
-                <Select value={sortOption} onValueChange={(v) => handleFilterChange('sort', v)}>
+                <Select value={sortOption} onValueChange={setSortOption}>
                     <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Sort by..." />
                     </SelectTrigger>
