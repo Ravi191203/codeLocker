@@ -10,22 +10,22 @@ import { Button } from '../ui/button';
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { useRouter } from 'next/navigation';
 
 interface SnippetListProps {
   snippets: Snippet[];
   loading?: boolean;
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
+  onSelectSnippet: (snippet: Snippet) => void;
 }
 
 export function SnippetList({
   snippets,
   loading,
   onEdit,
-  onDelete
+  onDelete,
+  onSelectSnippet
 }: SnippetListProps) {
-  const router = useRouter();
 
   if (loading) {
     return (
@@ -55,10 +55,6 @@ export function SnippetList({
     return acc;
   }, {} as Record<string, Snippet[]>);
 
-  const handleSelectSnippet = (snippet: Snippet) => {
-    router.push(`/dashboard/snippet/${snippet._id}`);
-  };
-
   return (
     <div className="space-y-8">
       {Object.entries(groupedSnippets).map(([language, langSnippets]) => (
@@ -72,7 +68,7 @@ export function SnippetList({
             {langSnippets.map((snippet) => (
               <Card
                 key={snippet._id}
-                onClick={() => handleSelectSnippet(snippet)}
+                onClick={() => onSelectSnippet(snippet)}
                 className="flex flex-col cursor-pointer transition-all hover:shadow-lg"
               >
                 <CardHeader className="flex-row items-start justify-between gap-4 p-4">

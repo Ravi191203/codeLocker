@@ -5,7 +5,7 @@ import { deleteSnippet } from '@/app/actions';
 import { SnippetList } from '@/components/codekeep/snippet-list';
 import { languages, type Snippet } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -69,6 +69,10 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
   const handleDeleteRequest = (id: string) => {
     setSnippetToDelete(id);
     setDeleteDialogOpen(true);
+  };
+
+  const handleSelectSnippet = (snippet: Snippet) => {
+    router.push(`/dashboard/snippet/${snippet._id}`);
   };
 
   const handleDeleteConfirm = () => {
@@ -151,6 +155,7 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
         </div>
          <SnippetList 
             snippets={filteredSnippets} 
+            onSelectSnippet={handleSelectSnippet}
             onEdit={handleEditRequest}
             onDelete={handleDeleteRequest}
         />
