@@ -5,7 +5,7 @@ import type { Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Languages, AlertTriangle, History, Share2, Copy, Check, ArrowLeft, TestTube2, Camera } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Languages, AlertTriangle, History, Share2, Copy, Check, ArrowLeft, TestTube2, Camera, Wand2 } from 'lucide-react';
 import { updateSnippetSharing, deleteSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -32,6 +32,7 @@ import { SnippetBugFinderView } from './snippet-bug-finder-view';
 import { SnippetTestsView } from './snippet-tests-view';
 import { SnippetHistoryView } from './snippet-history-view';
 import { SnippetImageView } from './snippet-image-view';
+import { SnippetRefactorView } from './snippet-refactor-view';
 
 interface SnippetViewProps {
   snippet: Snippet;
@@ -193,6 +194,10 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
                 <Sparkles className="h-4 w-4 mr-2" />
                 Explain
               </TabsTrigger>
+              <TabsTrigger value="refactor">
+                <Wand2 className="h-4 w-4 mr-2" />
+                Refactor
+              </TabsTrigger>
               <TabsTrigger value="converter">
                 <Languages className="h-4 w-4 mr-2" />
                 Convert
@@ -221,6 +226,9 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
             </TabsContent>
             <TabsContent value="explanation">
                 <SnippetExplainView snippet={snippet} />
+            </TabsContent>
+            <TabsContent value="refactor">
+                <SnippetRefactorView snippet={snippet} />
             </TabsContent>
             <TabsContent value="converter">
                 <SnippetConvertView snippet={snippet} />
