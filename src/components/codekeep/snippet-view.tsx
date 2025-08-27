@@ -1,11 +1,13 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import type { Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Languages, AlertTriangle, History, Share2, Copy, Check, ArrowLeft, TestTube2, Camera, Wand2 } from 'lucide-react';
+import { Pencil, Trash2, Sparkles, Languages, AlertTriangle, History, Share2, Copy, Check, ArrowLeft, TestTube2, Camera, Wand2, Loader2 } from 'lucide-react';
 import { updateSnippetSharing, deleteSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -26,13 +28,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { SnippetExplainView } from './snippet-explain-view';
-import { SnippetConvertView } from './snippet-convert-view';
-import { SnippetBugFinderView } from './snippet-bug-finder-view';
-import { SnippetTestsView } from './snippet-tests-view';
-import { SnippetHistoryView } from './snippet-history-view';
-import { SnippetImageView } from './snippet-image-view';
-import { SnippetRefactorView } from './snippet-refactor-view';
+
+const LoadingComponent = () => (
+    <div className="p-4 border rounded-md min-h-[400px] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+);
+
+const SnippetExplainView = dynamic(() => import('./snippet-explain-view').then(mod => mod.SnippetExplainView), { loading: LoadingComponent });
+const SnippetRefactorView = dynamic(() => import('./snippet-refactor-view').then(mod => mod.SnippetRefactorView), { loading: LoadingComponent });
+const SnippetConvertView = dynamic(() => import('./snippet-convert-view').then(mod => mod.SnippetConvertView), { loading: LoadingComponent });
+const SnippetBugFinderView = dynamic(() => import('./snippet-bug-finder-view').then(mod => mod.SnippetBugFinderView), { loading: LoadingComponent });
+const SnippetTestsView = dynamic(() => import('./snippet-tests-view').then(mod => mod.SnippetTestsView), { loading: LoadingComponent });
+const SnippetHistoryView = dynamic(() => import('./snippet-history-view').then(mod => mod.SnippetHistoryView), { loading: LoadingComponent });
+const SnippetImageView = dynamic(() => import('./snippet-image-view').then(mod => mod.SnippetImageView), { loading: LoadingComponent });
+
 
 interface SnippetViewProps {
   snippet: Snippet;
