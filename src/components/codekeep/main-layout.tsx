@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSnippetForm } from './add-snippet-form';
-import { Code2, Plus, BarChart3 } from 'lucide-react';
+import { Code2, Plus, BarChart3, Settings } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -27,19 +27,19 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
     <>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <header className="flex items-center justify-between gap-4 p-4 border-b">
-             <Link href="/" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
+             <Link href="/dashboard" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
                 <Code2 />
                 CodeKeep
              </Link>
              <div className="flex items-center gap-2">
                 <Button variant="ghost" asChild>
-                    <Link href="/analytics" className="flex items-center gap-2">
+                    <Link href="/dashboard/analytics" className="flex items-center gap-2">
                         <BarChart3 className="w-4 h-4" />
                         Analytics
                     </Link>
                 </Button>
                 <Button variant="ghost" asChild>
-                    <Link href="/extension">VS Code</Link>
+                    <Link href="/dashboard/extension">VS Code</Link>
                 </Button>
                 <Button
                     className="bg-accent text-accent-foreground hover:bg-accent/90"

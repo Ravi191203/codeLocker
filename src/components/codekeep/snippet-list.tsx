@@ -10,11 +10,11 @@ import { Button } from '../ui/button';
 import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useRouter } from 'next/navigation';
 
 interface SnippetListProps {
   snippets: Snippet[];
   loading?: boolean;
-  onSelectSnippet: (snippet: Snippet) => void;
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
 }
@@ -22,10 +22,11 @@ interface SnippetListProps {
 export function SnippetList({
   snippets,
   loading,
-  onSelectSnippet,
   onEdit,
   onDelete
 }: SnippetListProps) {
+  const router = useRouter();
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
@@ -54,6 +55,10 @@ export function SnippetList({
     return acc;
   }, {} as Record<string, Snippet[]>);
 
+  const handleSelectSnippet = (snippet: Snippet) => {
+    router.push(`/dashboard/snippet/${snippet._id}`);
+  };
+
   return (
     <div className="space-y-8">
       {Object.entries(groupedSnippets).map(([language, langSnippets]) => (
@@ -67,16 +72,17 @@ export function SnippetList({
             {langSnippets.map((snippet) => (
               <Card
                 key={snippet._id}
+                onClick={() => handleSelectSnippet(snippet)}
                 className="flex flex-col cursor-pointer transition-all hover:shadow-lg"
               >
                 <CardHeader className="flex-row items-start justify-between gap-4 p-4">
-                  <div onClick={() => onSelectSnippet(snippet)} className="flex-1">
+                  <div className="flex-1">
                     <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
                     <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
                   </div>
                    <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -92,7 +98,7 @@ export function SnippetList({
                       </DropdownMenuContent>
                     </DropdownMenu>
                 </CardHeader>
-                <CardContent className="p-4 pt-0 flex-grow" onClick={() => onSelectSnippet(snippet)}>
+                <CardContent className="p-4 pt-0 flex-grow">
                   <div className="h-24 overflow-hidden rounded-md bg-muted/50">
                     <SyntaxHighlighter
                         language={snippet.language}

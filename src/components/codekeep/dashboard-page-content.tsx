@@ -1,11 +1,11 @@
 "use client"
 
-import { useMemo, useState, useTransition } from 'react';
-import { deleteSnippet } from '@/app/actions';
+import { useEffect, useState, useTransition } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getFilteredSnippets, deleteSnippet } from '@/app/actions';
 import { SnippetList } from '@/components/codekeep/snippet-list';
 import { languages, type Snippet } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter, useSearchParams } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,53 +19,50 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EditSnippetForm } from '@/components/codekeep/edit-snippet-form';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '../ui/input';
+import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 
-export default function HomePageContent({ initialSnippets }: { initialSnippets: Snippet[] }) {
-  const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
+export default function DashboardPageContent() {
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
 
-  const [sortOption, setSortOption] = useState('newest');
-  const [languageFilter, setLanguageFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const sortOption = searchParams.get('sort') || 'newest';
+  const languageFilter = searchParams.get('lang') || 'all';
+  const searchTerm = searchParams.get('q') || '';
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
 
-  const filteredSnippets = useMemo(() => {
-    return snippets
-      .filter((snippet) => {
-        const lowerSearch = searchTerm.toLowerCase();
-        const languageMatch = languageFilter === 'all' || snippet.language === languageFilter;
-        const searchMatch = !lowerSearch || (
-          snippet.name.toLowerCase().includes(lowerSearch) ||
-          snippet.code.toLowerCase().includes(lowerSearch) ||
-          (snippet.description && snippet.description.toLowerCase().includes(lowerSearch)) ||
-          snippet.tags.some((tag) => tag.toLowerCase().includes(lowerSearch))
-        );
-        return languageMatch && searchMatch;
-      })
-      .sort((a, b) => {
-        switch (sortOption) {
-          case 'newest':
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-          case 'oldest':
-            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          case 'a-z':
-            return a.name.localeCompare(b.name);
-          case 'z-a':
-            return b.name.localeCompare(a.name);
-          default:
-            return 0;
-        }
+  useEffect(() => {
+    startTransition(async () => {
+      const dbSnippets = await getFilteredSnippets({
+          query: searchTerm,
+          language: languageFilter,
+          sort: sortOption
       });
-  }, [snippets, searchTerm, sortOption, languageFilter]);
-  
+      setSnippets(dbSnippets);
+    });
+  }, [searchTerm, languageFilter, sortOption]);
+
+  const handleFilterChange = (type: 'sort' | 'lang' | 'q', value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === 'all') {
+      params.delete(type);
+    } else {
+      params.set(type, value);
+    }
+    router.push(`?${params.toString()}`);
+  }
+
+  const handleSelectSnippet = (snippet: Snippet) => {
+    router.push(`/dashboard/snippet/${snippet._id}`);
+  };
+
   const handleDeleteRequest = (id: string) => {
     setSnippetToDelete(id);
     setDeleteDialogOpen(true);
@@ -80,8 +77,12 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
             title: 'Snippet deleted',
             description: 'The snippet has been permanently deleted.',
           });
-          // Refresh the page to get the latest snippets
-          router.refresh();
+          const dbSnippets = await getFilteredSnippets({
+              query: searchTerm,
+              language: languageFilter,
+              sort: sortOption
+          });
+          setSnippets(dbSnippets);
         } catch (error) {
           toast({
             variant: "destructive",
@@ -103,8 +104,13 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
 
   const onSnippetUpdated = () => {
     setEditDialogOpen(false);
-    startTransition(() => {
-      router.refresh();
+    startTransition(async () => {
+      const dbSnippets = await getFilteredSnippets({
+        query: searchTerm,
+        language: languageFilter,
+        sort: sortOption
+      });
+      setSnippets(dbSnippets);
     });
     setSnippetToEdit(null);
   }
@@ -120,12 +126,12 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
                         placeholder="Search snippets by name, content, or tag..."
                         className="pl-9 w-full bg-muted/50 focus:bg-background"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => handleFilterChange('q', e.target.value)}
                     />
                 </div>
             </div>
             <div className="flex items-center gap-2 w-full md:w-auto">
-                 <Select value={languageFilter} onValueChange={setLanguageFilter}>
+                 <Select value={languageFilter} onValueChange={(v) => handleFilterChange('lang', v)}>
                     <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Filter by language" />
                     </SelectTrigger>
@@ -136,7 +142,7 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
                         ))}
                     </SelectContent>
                 </Select>
-                <Select value={sortOption} onValueChange={setSortOption}>
+                <Select value={sortOption} onValueChange={(v) => handleFilterChange('sort', v)}>
                     <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Sort by..." />
                     </SelectTrigger>
@@ -150,7 +156,9 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
             </div>
         </div>
          <SnippetList 
-            snippets={filteredSnippets} 
+            snippets={snippets} 
+            loading={isPending}
+            onSelectSnippet={handleSelectSnippet}
             onEdit={handleEditRequest}
             onDelete={handleDeleteRequest}
         />
