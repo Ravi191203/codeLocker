@@ -25,6 +25,10 @@ import { Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 import { AddSnippetForm } from './add-snippet-form';
+import { SnippetView } from './snippet-view';
+import { getSnippetVersions } from '@/app/actions';
+import type { SnippetVersion } from '@/lib/data';
+
 
 export default function DashboardPageContent() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
@@ -42,6 +46,9 @@ export default function DashboardPageContent() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [viewedSnippet, setViewedSnippet] = useState<Snippet | null>(null);
+  const [viewedSnippetVersions, setViewedSnippetVersions] = useState<SnippetVersion[]>([]);
+
 
   useEffect(() => {
     startTransition(async () => {
@@ -64,8 +71,10 @@ export default function DashboardPageContent() {
     router.push(`/dashboard?${params.toString()}`);
   }
 
-  const handleSelectSnippet = (snippet: Snippet) => {
-    router.push(`/dashboard/snippet/${snippet._id}`);
+  const handleSelectSnippet = async (snippet: Snippet) => {
+    setViewedSnippet(snippet);
+    const versions = await getSnippetVersions(snippet._id);
+    setViewedSnippetVersions(versions);
   };
 
   const handleDeleteRequest = (id: string) => {
@@ -88,7 +97,7 @@ export default function DashboardPageContent() {
               sort: sortOption
           });
           setSnippets(dbSnippets);
-        } catch (error) {
+        } catch (error) => {
           toast({
             variant: "destructive",
             title: "Uh oh! Something went wrong.",
@@ -116,6 +125,13 @@ export default function DashboardPageContent() {
         sort: sortOption
       });
       setSnippets(dbSnippets);
+      // Also update the viewed snippet if it's the one being edited
+      if (viewedSnippet && snippetToEdit && viewedSnippet._id === snippetToEdit._id) {
+        const updatedViewedSnippet = dbSnippets.find((s: Snippet) => s._id === viewedSnippet._id);
+        if (updatedViewedSnippet) {
+          setViewedSnippet(updatedViewedSnippet);
+        }
+      }
     });
     setSnippetToEdit(null);
   }
@@ -134,6 +150,12 @@ export default function DashboardPageContent() {
       });
       setSnippets(dbSnippets);
     });
+  }
+
+  const closeSnippetView = () => {
+    setViewedSnippet(null);
+    setViewedSnippetVersions([]);
+    router.refresh(); // Refresh data on the dashboard
   }
 
   return (
@@ -234,6 +256,25 @@ export default function DashboardPageContent() {
           <AddSnippetForm
             onSuccess={onSnippetAdded}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!viewedSnippet} onOpenChange={(open) => {
+        if (!open) {
+          closeSnippetView();
+        }
+      }}>
+        <DialogContent className="max-w-6xl w-full h-[90vh] flex flex-col p-0">
+            {viewedSnippet && (
+                <SnippetView 
+                    snippet={viewedSnippet} 
+                    initialVersions={viewedSnippetVersions}
+                    onClose={closeSnippetView}
+                    onEdit={handleEditRequest}
+                    onDeleteRequest={handleDeleteRequest}
+                    onSnippetUpdated={onSnippetUpdated}
+                />
+            )}
         </DialogContent>
       </Dialog>
     </>
