@@ -97,7 +97,7 @@ export default function DashboardPageContent() {
               sort: sortOption
           });
           setSnippets(dbSnippets);
-        } catch (error) => {
+        } catch (error) {
           toast({
             variant: "destructive",
             title: "Uh oh! Something went wrong.",
