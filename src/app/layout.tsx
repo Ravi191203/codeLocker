@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MainLayout } from '@/components/codekeep/main-layout';
+import Script from 'next/script';
 
 export const metadata: Metadata = {
   title: 'CodeLocker',
@@ -24,6 +25,11 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         ></link>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2053494212350614"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className="font-body antialiased">
         <ThemeProvider
