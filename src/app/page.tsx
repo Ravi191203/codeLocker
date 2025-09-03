@@ -12,17 +12,19 @@ type DashboardPageProps = {
     }
 }
 
-async function Snippets({ query, language, sort }: { query?: string; language?: string; sort?: string }) {
-    const snippets: Snippet[] = await getFilteredSnippets({ query, language, sort });
-    return <DashboardPageContent initialSnippets={snippets} />;
-}
-
-export default function DashboardPage({ searchParams }: DashboardPageProps) {
+// This is the main server component for the page
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const { q, lang, sort } = searchParams;
   
+  // Data is fetched on the server
+  const snippets: Snippet[] = await getFilteredSnippets({ 
+      query: q, 
+      language: lang, 
+      sort: sort 
+  });
+
   return (
-    <Suspense fallback={<div className="p-4 md:p-8">Loading dashboard...</div>}>
-      <Snippets query={q} language={lang} sort={sort} />
-    </Suspense>
+    // The client component receives the initial data as a prop
+    <DashboardPageContent initialSnippets={snippets} />
   );
 }
