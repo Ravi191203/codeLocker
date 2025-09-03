@@ -16,9 +16,9 @@ type DashboardPageProps = {
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   // Data is fetched on the server
   const snippets: Snippet[] = await getFilteredSnippets({ 
-      query: searchParams.q, 
-      language: searchParams.lang, 
-      sort: searchParams.sort 
+      query: searchParams?.q, 
+      language: searchParams?.lang, 
+      sort: searchParams?.sort 
   });
 
   return (
