@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { Code2 } from 'lucide-react';
-import { Button } from '../ui/button';
 import Link from 'next/link';
 
 export function MainLayout({ children }: { children?: React.ReactNode }) {
@@ -16,11 +15,6 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
                 <Code2 />
                 CodeKeep
              </Link>
-             <div className="flex items-center gap-2">
-                <Button asChild variant="ghost">
-                    <Link href="/dashboard">Dashboard</Link>
-                </Button>
-             </div>
         </header>
 
         <main className="flex-1 overflow-y-auto">

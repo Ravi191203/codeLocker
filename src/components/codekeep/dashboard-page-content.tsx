@@ -53,7 +53,7 @@ function SearchAndFilterControls() {
         } else {
             params.set(type, value);
         }
-        router.push(`/dashboard?${params.toString()}`);
+        router.push(`/?${params.toString()}`);
     }
 
     return (
@@ -155,7 +155,7 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
     // Update URL without navigating
     const params = new URLSearchParams(searchParams.toString());
     params.set('view', snippet._id);
-    router.replace(`/dashboard?${params.toString()}`);
+    router.replace(`/?${params.toString()}`);
   };
 
   const handleDeleteRequest = (id: string) => {
@@ -220,7 +220,7 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
     setViewedSnippetVersions([]);
     const params = new URLSearchParams(searchParams.toString());
     params.delete('view');
-    router.replace(`/dashboard?${params.toString()}`);
+    router.replace(`/?${params.toString()}`);
   }
 
   return (
