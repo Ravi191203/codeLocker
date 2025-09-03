@@ -27,13 +27,13 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
     <>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <header className="flex items-center justify-between gap-4 p-4 border-b">
-             <Link href="/" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
+             <Link href="/" className="text-xl font-bold tracking-tight text-primary flex items-center gap-2">
                 <Code2 />
                 CodeKeep
              </Link>
              <div className="flex items-center gap-2">
                 <Button
-                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                     onClick={() => setAddDialogOpen(true)}
                     >
                     <Plus className="mr-2 h-4 w-4" />
@@ -48,8 +48,8 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
       </div>
       
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader className="p-6">
             <DialogTitle>Add New Snippet</DialogTitle>
           </DialogHeader>
           <AddSnippetForm

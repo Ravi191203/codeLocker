@@ -229,8 +229,8 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
       </AlertDialog>
       
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader className="p-6">
             <DialogTitle>Edit Snippet</DialogTitle>
           </DialogHeader>
           <EditSnippetForm

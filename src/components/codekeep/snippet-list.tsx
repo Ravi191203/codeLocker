@@ -60,7 +60,7 @@ export function SnippetList({
       {Object.entries(groupedSnippets).map(([language, langSnippets]) => (
         <section key={language}>
           <h3 className="text-xl font-semibold capitalize mb-4 tracking-tight flex items-center gap-3">
-             <FileCode className="w-6 h-6 text-accent" />
+             <FileCode className="w-6 h-6 text-primary" />
              {language}
              <Badge variant="outline">{langSnippets.length}</Badge>
           </h3>

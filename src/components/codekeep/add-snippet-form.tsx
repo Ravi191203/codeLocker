@@ -115,10 +115,6 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
     startTransition(async () => {
       try {
         await addSnippet(values);
-        toast({
-          title: "Snippet created!",
-          description: "Your new snippet has been saved successfully.",
-        });
         onSuccess();
       } catch (error) {
         toast({
@@ -168,7 +164,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
                  <div className="flex items-center justify-between">
                   <FormLabel>Code</FormLabel>
                   {isGenerating && (
-                     <div className="text-xs text-accent flex items-center gap-2">
+                     <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <Sparkles className="h-4 w-4 animate-pulse" />
                         <span>Generating details with AI...</span>
                     </div>
@@ -218,7 +214,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
           </div>
         </div>
         <DialogFooter className="border-t pt-4 bg-muted/50 p-6">
-            <Button type="submit" disabled={isPending || isGenerating} className="bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button type="submit" disabled={isPending || isGenerating} className="bg-primary text-primary-foreground hover:bg-primary/90">
             {isPending ? "Adding..." : "Add Snippet"}
             </Button>
         </DialogFooter>
