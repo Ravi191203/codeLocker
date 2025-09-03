@@ -1,27 +1,12 @@
+
 "use client";
 
-import React, from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AddSnippetForm } from './add-snippet-form';
-import { Code2, Plus } from 'lucide-react';
+import React from 'react';
+import { Code2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export function MainLayout({ children }: { children?: React.ReactNode }) {
-  const [addDialogOpen, setAddDialogOpen] = React.useState(false);
-  const { toast } = useToast();
-  const router = useRouter();
-
-  const onSnippetAdded = () => {
-    setAddDialogOpen(false);
-     router.refresh();
-      toast({
-        title: "Snippet created!",
-        description: "Your new snippet has been saved successfully.",
-      });
-  }
 
   return (
     <>
@@ -32,12 +17,8 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
                 CodeKeep
              </Link>
              <div className="flex items-center gap-2">
-                <Button
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => setAddDialogOpen(true)}
-                    >
-                    <Plus className="mr-2 h-4 w-4" />
-                    <span>New Snippet</span>
+                <Button asChild variant="ghost">
+                    <Link href="/dashboard">Dashboard</Link>
                 </Button>
              </div>
         </header>
@@ -46,17 +27,6 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
             {children}
         </main>
       </div>
-      
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-w-3xl p-0">
-          <DialogHeader className="p-6">
-            <DialogTitle>Add New Snippet</DialogTitle>
-          </DialogHeader>
-          <AddSnippetForm
-            onSuccess={onSnippetAdded}
-          />
-        </DialogContent>
-      </Dialog>
     </>
   );
 }

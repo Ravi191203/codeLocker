@@ -1,3 +1,4 @@
+
 import { Suspense } from 'react';
 import { getSnippets } from '@/app/actions';
 import HomePageContent from '@/components/codekeep/home-page-content';

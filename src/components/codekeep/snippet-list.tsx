@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import type { Snippet } from '@/lib/data';
@@ -14,6 +15,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 interface SnippetListProps {
   snippets: Snippet[];
   loading?: boolean;
+  isDashboard?: boolean;
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
   onSelectSnippet: (snippet: Snippet) => void;
@@ -22,6 +24,7 @@ interface SnippetListProps {
 export function SnippetList({
   snippets,
   loading,
+  isDashboard = true,
   onEdit,
   onDelete,
   onSelectSnippet
@@ -29,7 +32,7 @@ export function SnippetList({
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
+      <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-8">
         <Loader2 className="w-16 h-16 mb-4 animate-spin" />
         <h3 className="text-lg font-semibold">Loading Snippets...</h3>
       </div>
@@ -38,7 +41,7 @@ export function SnippetList({
   
   if (snippets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
+      <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-8 rounded-lg border-dashed border-2">
         <FileCode className="w-16 h-16 mb-4" />
         <h3 className="text-lg font-semibold">No Snippets Found</h3>
         <p className="text-sm">Try a different search term or add a new snippet.</p>
@@ -69,30 +72,32 @@ export function SnippetList({
               <Card
                 key={snippet._id}
                 onClick={() => onSelectSnippet(snippet)}
-                className="flex flex-col cursor-pointer transition-all hover:shadow-lg"
+                className="flex flex-col cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
               >
                 <CardHeader className="flex-row items-start justify-between gap-4 p-4">
                   <div className="flex-1">
                     <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
                     <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
                   </div>
-                   <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(snippet); }}>
-                          <Pencil className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(snippet._id); }} className="text-destructive">
-                           <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  {isDashboard && (
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(snippet); }}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(snippet._id); }} className="text-destructive">
+                             <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                  )}
                 </CardHeader>
                 <CardContent className="p-4 pt-0 flex-grow">
                   <div className="h-24 overflow-hidden rounded-md bg-muted/50">

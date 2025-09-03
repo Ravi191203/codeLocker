@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState, useTransition } from 'react';
@@ -21,6 +22,9 @@ import { EditSnippetForm } from '@/components/codekeep/edit-snippet-form';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Plus } from 'lucide-react';
+import { AddSnippetForm } from './add-snippet-form';
 
 export default function DashboardPageContent() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
@@ -37,6 +41,7 @@ export default function DashboardPageContent() {
   const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   useEffect(() => {
     startTransition(async () => {
@@ -56,7 +61,7 @@ export default function DashboardPageContent() {
     } else {
       params.set(type, value);
     }
-    router.push(`?${params.toString()}`);
+    router.push(`/dashboard?${params.toString()}`);
   }
 
   const handleSelectSnippet = (snippet: Snippet) => {
@@ -115,6 +120,22 @@ export default function DashboardPageContent() {
     setSnippetToEdit(null);
   }
 
+  const onSnippetAdded = () => {
+    setAddDialogOpen(false);
+    toast({
+        title: "Snippet created!",
+        description: "Your new snippet has been saved successfully.",
+    });
+    startTransition(async () => {
+      const dbSnippets = await getFilteredSnippets({
+        query: searchTerm,
+        language: languageFilter,
+        sort: sortOption
+      });
+      setSnippets(dbSnippets);
+    });
+  }
+
   return (
     <>
       <div className="p-4 md:p-8">
@@ -130,7 +151,7 @@ export default function DashboardPageContent() {
                     />
                 </div>
             </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
                  <Select value={languageFilter} onValueChange={(v) => handleFilterChange('lang', v)}>
                     <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Filter by language" />
@@ -153,6 +174,13 @@ export default function DashboardPageContent() {
                         <SelectItem value="z-a">Z-A</SelectItem>
                     </SelectContent>
                 </Select>
+                 <Button
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => setAddDialogOpen(true)}
+                    >
+                    <Plus className="mr-2 h-4 w-4" />
+                    <span>New Snippet</span>
+                </Button>
             </div>
         </div>
          <SnippetList 
@@ -185,8 +213,8 @@ export default function DashboardPageContent() {
         if (!open) setSnippetToEdit(null);
         setEditDialogOpen(open);
       }}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader className="p-6">
             <DialogTitle>Edit Snippet</DialogTitle>
           </DialogHeader>
           {snippetToEdit && (
@@ -195,6 +223,17 @@ export default function DashboardPageContent() {
               onSuccess={onSnippetUpdated}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader className="p-6">
+            <DialogTitle>Add New Snippet</DialogTitle>
+          </DialogHeader>
+          <AddSnippetForm
+            onSuccess={onSnippetAdded}
+          />
         </DialogContent>
       </Dialog>
     </>
