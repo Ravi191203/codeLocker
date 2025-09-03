@@ -9,8 +9,6 @@ import { FileCode, Loader2, MoreVertical, Pencil, Trash2, Copy, Check } from 'lu
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import React, { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useToast } from '@/hooks/use-toast';
 
 interface SnippetListProps {
@@ -77,7 +75,7 @@ function SnippetCard({ snippet, isDashboard, onSelectSnippet, onEdit, onDelete }
         )}
       </CardHeader>
       <CardContent className="p-4 pt-0 flex-grow">
-        <div className="h-24 overflow-hidden rounded-md bg-muted/50 relative group/code">
+        <div className="h-24 overflow-hidden rounded-md bg-muted/50 relative group/code p-2">
            <Button
               size="icon"
               variant="ghost"
@@ -91,24 +89,9 @@ function SnippetCard({ snippet, isDashboard, onSelectSnippet, onEdit, onDelete }
                 <Copy className="h-4 w-4" />
               )}
             </Button>
-          <SyntaxHighlighter
-              language={snippet.language}
-              style={oneDark}
-              customStyle={{
-                margin: 0,
-                padding: '0.5rem',
-                height: '100%',
-                backgroundColor: 'transparent',
-                fontSize: '12px',
-              }}
-              codeTagProps={{
-                style: {
-                  fontFamily: 'var(--font-code)',
-                }
-              }}
-            >
+            <pre className="text-xs font-mono whitespace-pre-wrap overflow-hidden h-full">
               {snippet.code}
-            </SyntaxHighlighter>
+            </pre>
         </div>
       </CardContent>
       <CardFooter className="p-4 pt-0">
