@@ -1,9 +1,9 @@
 
 "use client"
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useState, useTransition, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getFilteredSnippets, deleteSnippet } from '@/app/actions';
+import { deleteSnippet } from '@/app/actions';
 import { SnippetList } from '@/components/codekeep/snippet-list';
 import { languages, type Snippet } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,149 +26,36 @@ import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 import { AddSnippetForm } from './add-snippet-form';
 import { SnippetView } from './snippet-view';
-import { getSnippetVersions } from '@/app/actions';
+import { getSnippetVersions, getFilteredSnippets } from '@/app/actions';
 import type { SnippetVersion } from '@/lib/data';
 
+function SearchAndFilterControls() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
 
-export default function DashboardPageContent() {
-  const [snippets, setSnippets] = useState<Snippet[]>([]);
-  const [isPending, startTransition] = useTransition();
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const { toast } = useToast();
-
-  const sortOption = searchParams.get('sort') || 'newest';
-  const languageFilter = searchParams.get('lang') || 'all';
-  const searchTerm = searchParams.get('q') || '';
-  
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [viewedSnippet, setViewedSnippet] = useState<Snippet | null>(null);
-  const [viewedSnippetVersions, setViewedSnippetVersions] = useState<SnippetVersion[]>([]);
-
-
-  useEffect(() => {
-    startTransition(async () => {
-      const dbSnippets = await getFilteredSnippets({
-          query: searchTerm,
-          language: languageFilter,
-          sort: sortOption
-      });
-      setSnippets(dbSnippets);
-    });
-  }, [searchTerm, languageFilter, sortOption]);
-
-  const handleFilterChange = (type: 'sort' | 'lang' | 'q', value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (!value || value === 'all') {
-      params.delete(type);
-    } else {
-      params.set(type, value);
-    }
-    router.push(`/dashboard?${params.toString()}`);
-  }
-
-  const handleSelectSnippet = async (snippet: Snippet) => {
-    setViewedSnippet(snippet);
-    const versions = await getSnippetVersions(snippet._id);
-    setViewedSnippetVersions(versions);
-  };
-
-  const handleDeleteRequest = (id: string) => {
-    setSnippetToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (snippetToDelete) {
-      startTransition(async () => {
-        try {
-          await deleteSnippet(snippetToDelete);
-          toast({
-            title: 'Snippet deleted',
-            description: 'The snippet has been permanently deleted.',
-          });
-          const dbSnippets = await getFilteredSnippets({
-              query: searchTerm,
-              language: languageFilter,
-              sort: sortOption
-          });
-          setSnippets(dbSnippets);
-        } catch (error) {
-          toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: "Could not delete the snippet.",
-          });
-        } finally {
-            setDeleteDialogOpen(false);
-            setSnippetToDelete(null);
+    const sortOption = searchParams.get('sort') || 'newest';
+    const languageFilter = searchParams.get('lang') || 'all';
+    const searchTerm = searchParams.get('q') || '';
+    
+    const handleFilterChange = (type: 'sort' | 'lang' | 'q', value: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (!value || value === 'all') {
+            params.delete(type);
+        } else {
+            params.set(type, value);
         }
-      });
+        router.push(`/dashboard?${params.toString()}`);
     }
-  };
-  
-  const handleEditRequest = (snippet: Snippet) => {
-    setSnippetToEdit(snippet);
-    setEditDialogOpen(true);
-  }
 
-  const onSnippetUpdated = () => {
-    setEditDialogOpen(false);
-    startTransition(async () => {
-      const dbSnippets = await getFilteredSnippets({
-        query: searchTerm,
-        language: languageFilter,
-        sort: sortOption
-      });
-      setSnippets(dbSnippets);
-      // Also update the viewed snippet if it's the one being edited
-      if (viewedSnippet && snippetToEdit && viewedSnippet._id === snippetToEdit._id) {
-        const updatedViewedSnippet = dbSnippets.find((s: Snippet) => s._id === viewedSnippet._id);
-        if (updatedViewedSnippet) {
-          setViewedSnippet(updatedViewedSnippet);
-        }
-      }
-    });
-    setSnippetToEdit(null);
-  }
-
-  const onSnippetAdded = () => {
-    setAddDialogOpen(false);
-    toast({
-        title: "Snippet created!",
-        description: "Your new snippet has been saved successfully.",
-    });
-    startTransition(async () => {
-      const dbSnippets = await getFilteredSnippets({
-        query: searchTerm,
-        language: languageFilter,
-        sort: sortOption
-      });
-      setSnippets(dbSnippets);
-    });
-  }
-
-  const closeSnippetView = () => {
-    setViewedSnippet(null);
-    setViewedSnippetVersions([]);
-    router.refresh(); // Refresh data on the dashboard
-  }
-
-  return (
-    <>
-      <div className="p-4 md:p-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+    return (
+        <>
             <div className="w-full flex-1">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search snippets by name, content, or tag..."
                         className="pl-9 w-full bg-muted/50 focus:bg-background"
-                        value={searchTerm}
+                        defaultValue={searchTerm}
                         onChange={(e) => handleFilterChange('q', e.target.value)}
                     />
                 </div>
@@ -196,14 +83,125 @@ export default function DashboardPageContent() {
                         <SelectItem value="z-a">Z-A</SelectItem>
                     </SelectContent>
                 </Select>
-                 <Button
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => setAddDialogOpen(true)}
-                    >
-                    <Plus className="mr-2 h-4 w-4" />
-                    <span>New Snippet</span>
-                </Button>
             </div>
+        </>
+    )
+}
+
+
+export default function DashboardPageContent({ initialSnippets }: { initialSnippets: Snippet[] }) {
+  const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
+  const [isPending, startTransition] = useTransition();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [snippetToDelete, setSnippetToDelete] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [snippetToEdit, setSnippetToEdit] = useState<Snippet | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [viewedSnippet, setViewedSnippet] = useState<Snippet | null>(null);
+  const [viewedSnippetVersions, setViewedSnippetVersions] = useState<SnippetVersion[]>([]);
+
+  useEffect(() => {
+    setSnippets(initialSnippets);
+  }, [initialSnippets]);
+
+
+  const refreshSnippets = () => {
+    startTransition(async () => {
+        const dbSnippets = await getFilteredSnippets({
+            query: searchParams.get('q') || '',
+            language: searchParams.get('lang') || 'all',
+            sort: searchParams.get('sort') || 'newest'
+        });
+        setSnippets(dbSnippets);
+    });
+  }
+
+  const handleSelectSnippet = async (snippet: Snippet) => {
+    setViewedSnippet(snippet);
+    const versions = await getSnippetVersions(snippet._id);
+    setViewedSnippetVersions(versions);
+  };
+
+  const handleDeleteRequest = (id: string) => {
+    setSnippetToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (snippetToDelete) {
+      startTransition(async () => {
+        try {
+          await deleteSnippet(snippetToDelete);
+          toast({
+            title: 'Snippet deleted',
+            description: 'The snippet has been permanently deleted.',
+          });
+          refreshSnippets();
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "Could not delete the snippet.",
+          });
+        } finally {
+            setDeleteDialogOpen(false);
+            setSnippetToDelete(null);
+            if (viewedSnippet?._id === snippetToDelete) {
+                setViewedSnippet(null);
+            }
+        }
+      });
+    }
+  };
+  
+  const handleEditRequest = (snippet: Snippet) => {
+    setSnippetToEdit(snippet);
+    setEditDialogOpen(true);
+  }
+
+  const onSnippetUpdated = () => {
+    setEditDialogOpen(false);
+    refreshSnippets();
+    // Also update the viewed snippet if it's the one being edited
+    if (viewedSnippet && snippetToEdit && viewedSnippet._id === snippetToEdit._id) {
+        // Snippet data will be stale, so let's close the view and let user reopen
+        setViewedSnippet(null); 
+    }
+    setSnippetToEdit(null);
+  }
+
+  const onSnippetAdded = () => {
+    setAddDialogOpen(false);
+    toast({
+        title: "Snippet created!",
+        description: "Your new snippet has been saved successfully.",
+    });
+    refreshSnippets();
+  }
+
+  const closeSnippetView = () => {
+    setViewedSnippet(null);
+    setViewedSnippetVersions([]);
+  }
+
+  return (
+    <>
+      <div className="p-4 md:p-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+            <Suspense>
+                <SearchAndFilterControls />
+            </Suspense>
+            <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                onClick={() => setAddDialogOpen(true)}
+                >
+                <Plus className="mr-2 h-4 w-4" />
+                <span>New Snippet</span>
+            </Button>
         </div>
          <SnippetList 
             snippets={snippets} 
