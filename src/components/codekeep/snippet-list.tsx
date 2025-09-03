@@ -5,12 +5,13 @@
 import type { Snippet } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
-import { FileCode, Loader2, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { FileCode, Loader2, MoreVertical, Pencil, Trash2, Copy, Check } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
-import React from 'react';
+import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useToast } from '@/hooks/use-toast';
 
 interface SnippetListProps {
   snippets: Snippet[];
@@ -19,6 +20,107 @@ interface SnippetListProps {
   onEdit: (snippet: Snippet) => void;
   onDelete: (id: string) => void;
   onSelectSnippet: (snippet: Snippet) => void;
+}
+
+function SnippetCard({ snippet, isDashboard, onSelectSnippet, onEdit, onDelete }: {
+  snippet: Snippet;
+  isDashboard: boolean;
+  onSelectSnippet: (snippet: Snippet) => void;
+  onEdit: (snippet: Snippet) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [hasCopied, setHasCopied] = useState(false);
+  const { toast } = useToast();
+
+  const copyToClipboard = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(snippet.code).then(() => {
+      setHasCopied(true);
+      toast({
+        title: 'Copied to clipboard!',
+      });
+      setTimeout(() => {
+        setHasCopied(false);
+      }, 2000);
+    });
+  };
+
+  return (
+    <Card
+      key={snippet._id}
+      onClick={() => onSelectSnippet(snippet)}
+      className="flex flex-col cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
+    >
+      <CardHeader className="flex-row items-start justify-between gap-4 p-4">
+        <div className="flex-1">
+          <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
+          <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
+        </div>
+        {isDashboard && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(snippet); }}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  <span>Edit</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(snippet._id); }} className="text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+        )}
+      </CardHeader>
+      <CardContent className="p-4 pt-0 flex-grow">
+        <div className="h-24 overflow-hidden rounded-md bg-muted/50 relative group/code">
+           <Button
+              size="icon"
+              variant="ghost"
+              className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover/code:opacity-100 transition-opacity focus:opacity-100 z-10"
+              onClick={copyToClipboard}
+              aria-label="Copy code"
+            >
+              {hasCopied ? (
+                <Check className="h-4 w-4 text-green-500" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          <SyntaxHighlighter
+              language={snippet.language}
+              style={oneDark}
+              customStyle={{
+                margin: 0,
+                padding: '0.5rem',
+                height: '100%',
+                backgroundColor: 'transparent',
+                fontSize: '12px',
+              }}
+              codeTagProps={{
+                style: {
+                  fontFamily: 'var(--font-code)',
+                }
+              }}
+            >
+              {snippet.code}
+            </SyntaxHighlighter>
+        </div>
+      </CardContent>
+      <CardFooter className="p-4 pt-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="secondary" className="text-xs capitalize">{snippet.language}</Badge>
+            {snippet.tags.slice(0, 3).map((tag) => (
+              <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+            ))}
+          </div>
+      </CardFooter>
+    </Card>
+  )
 }
 
 export function SnippetList({
@@ -69,67 +171,14 @@ export function SnippetList({
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {langSnippets.map((snippet) => (
-              <Card
+              <SnippetCard 
                 key={snippet._id}
-                onClick={() => onSelectSnippet(snippet)}
-                className="flex flex-col cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
-              >
-                <CardHeader className="flex-row items-start justify-between gap-4 p-4">
-                  <div className="flex-1">
-                    <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
-                    <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
-                  </div>
-                  {isDashboard && (
-                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(snippet); }}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            <span>Edit</span>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(snippet._id); }} className="text-destructive">
-                             <Trash2 className="mr-2 h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                  )}
-                </CardHeader>
-                <CardContent className="p-4 pt-0 flex-grow">
-                  <div className="h-24 overflow-hidden rounded-md bg-muted/50">
-                    <SyntaxHighlighter
-                        language={snippet.language}
-                        style={oneDark}
-                        customStyle={{
-                          margin: 0,
-                          padding: '0.5rem',
-                          height: '100%',
-                          backgroundColor: 'transparent',
-                          fontSize: '12px',
-                        }}
-                        codeTagProps={{
-                          style: {
-                            fontFamily: 'var(--font-code)',
-                          }
-                        }}
-                      >
-                        {snippet.code}
-                      </SyntaxHighlighter>
-                  </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                   <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="secondary" className="text-xs capitalize">{snippet.language}</Badge>
-                      {snippet.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
-                      ))}
-                    </div>
-                </CardFooter>
-              </Card>
+                snippet={snippet}
+                isDashboard={isDashboard}
+                onSelectSnippet={onSelectSnippet}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
           </div>
         </section>
