@@ -7,7 +7,7 @@ import type { Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, Sparkles, Languages, AlertTriangle, History, Share2, Copy, Check, ArrowLeft, TestTube2, Camera, Wand2, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, History, Share2, Copy, Check, ArrowLeft, Loader2 } from 'lucide-react';
 import { updateSnippetSharing, deleteSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,13 +35,7 @@ const LoadingComponent = () => (
     </div>
 );
 
-const SnippetExplainView = dynamic(() => import('./snippet-explain-view').then(mod => mod.SnippetExplainView), { loading: LoadingComponent });
-const SnippetRefactorView = dynamic(() => import('./snippet-refactor-view').then(mod => mod.SnippetRefactorView), { loading: LoadingComponent });
-const SnippetConvertView = dynamic(() => import('./snippet-convert-view').then(mod => mod.SnippetConvertView), { loading: LoadingComponent });
-const SnippetBugFinderView = dynamic(() => import('./snippet-bug-finder-view').then(mod => mod.SnippetBugFinderView), { loading: LoadingComponent });
-const SnippetTestsView = dynamic(() => import('./snippet-tests-view').then(mod => mod.SnippetTestsView), { loading: LoadingComponent });
 const SnippetHistoryView = dynamic(() => import('./snippet-history-view').then(mod => mod.SnippetHistoryView), { loading: LoadingComponent });
-const SnippetImageView = dynamic(() => import('./snippet-image-view').then(mod => mod.SnippetImageView), { loading: LoadingComponent });
 
 
 interface SnippetViewProps {
@@ -200,33 +194,9 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
           <Tabs defaultValue="code" className="space-y-4">
             <TabsList className="w-full justify-start md:w-auto overflow-x-auto">
               <TabsTrigger value="code">Code</TabsTrigger>
-              <TabsTrigger value="explanation">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Explain
-              </TabsTrigger>
-              <TabsTrigger value="refactor">
-                <Wand2 className="h-4 w-4 mr-2" />
-                Refactor
-              </TabsTrigger>
-              <TabsTrigger value="converter">
-                <Languages className="h-4 w-4 mr-2" />
-                Convert
-              </TabsTrigger>
-              <TabsTrigger value="bug-finder">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                Find Bugs
-              </TabsTrigger>
-              <TabsTrigger value="tests">
-                <TestTube2 className="h-4 w-4 mr-2" />
-                Tests
-              </TabsTrigger>
               <TabsTrigger value="history">
                 <History className="h-4 w-4 mr-2" />
                 History
-              </TabsTrigger>
-              <TabsTrigger value="image">
-                <Camera className="h-4 w-4 mr-2" />
-                Image
               </TabsTrigger>
             </TabsList>
             <TabsContent value="code">
@@ -234,26 +204,8 @@ export function SnippetView({ snippet: initialSnippet, initialVersions }: Snippe
                 <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
               </div>
             </TabsContent>
-            <TabsContent value="explanation">
-                <SnippetExplainView snippet={snippet} />
-            </TabsContent>
-            <TabsContent value="refactor">
-                <SnippetRefactorView snippet={snippet} />
-            </TabsContent>
-            <TabsContent value="converter">
-                <SnippetConvertView snippet={snippet} />
-            </TabsContent>
-            <TabsContent value="bug-finder">
-                <SnippetBugFinderView snippet={snippet} />
-            </TabsContent>
-            <TabsContent value="tests">
-                <SnippetTestsView snippet={snippet} />
-            </TabsContent>
             <TabsContent value="history">
                 <SnippetHistoryView snippet={snippet} initialVersions={initialVersions} />
-            </TabsContent>
-            <TabsContent value="image">
-                <SnippetImageView snippet={snippet} />
             </TabsContent>
           </Tabs>
         </main>

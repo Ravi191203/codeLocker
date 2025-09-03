@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSnippetForm } from './add-snippet-form';
-import { Code2, Plus, BarChart3, Settings } from 'lucide-react';
+import { Code2, Plus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -32,15 +32,6 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
                 CodeKeep
              </Link>
              <div className="flex items-center gap-2">
-                <Button variant="ghost" asChild>
-                    <Link href="/dashboard/analytics" className="flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4" />
-                        Analytics
-                    </Link>
-                </Button>
-                <Button variant="ghost" asChild>
-                    <Link href="/dashboard/extension">VS Code</Link>
-                </Button>
                 <Button
                     className="bg-accent text-accent-foreground hover:bg-accent/90"
                     onClick={() => setAddDialogOpen(true)}

@@ -22,12 +22,6 @@ export type SnippetVersion = {
   createdAt: Date;
 };
 
-export type Bug = {
-  line: number;
-  bug: string;
-  suggestion: string;
-};
-
 export const languages = [
   'javascript',
   'python',
