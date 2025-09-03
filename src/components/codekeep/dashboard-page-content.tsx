@@ -26,7 +26,7 @@ import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
 import { AddSnippetForm } from './add-snippet-form';
 import { SnippetView } from './snippet-view';
-import { getSnippetVersions, getFilteredSnippets } from '@/app/actions';
+import { getSnippetVersions, getFilteredSnippets, getSnippetById } from '@/app/actions';
 import type { SnippetVersion } from '@/lib/data';
 
 function SearchAndFilterControls() {
@@ -37,6 +37,15 @@ function SearchAndFilterControls() {
     const languageFilter = searchParams.get('lang') || 'all';
     const searchTerm = searchParams.get('q') || '';
     
+    // Debounce handler
+    let timeoutId: NodeJS.Timeout;
+    const handleDebouncedSearch = (value: string) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            handleFilterChange('q', value);
+        }, 300); // 300ms debounce
+    }
+
     const handleFilterChange = (type: 'sort' | 'lang' | 'q', value: string) => {
         const params = new URLSearchParams(searchParams.toString());
         if (!value || value === 'all') {
@@ -56,7 +65,7 @@ function SearchAndFilterControls() {
                         placeholder="Search snippets by name, content, or tag..."
                         className="pl-9 w-full bg-muted/50 focus:bg-background"
                         defaultValue={searchTerm}
-                        onChange={(e) => handleFilterChange('q', e.target.value)}
+                        onChange={(e) => handleDebouncedSearch(e.target.value)}
                     />
                 </div>
             </div>
@@ -108,6 +117,25 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
     setSnippets(initialSnippets);
   }, [initialSnippets]);
 
+  // Effect to handle opening snippet from URL param
+  useEffect(() => {
+    const viewId = searchParams.get('view');
+    if (viewId) {
+      const snippetToView = initialSnippets.find(s => s._id === viewId);
+      if (snippetToView) {
+        handleSelectSnippet(snippetToView);
+      } else {
+        // If not in initial snippets, fetch it
+        startTransition(async () => {
+          const snippet = await getSnippetById(viewId);
+          if (snippet) handleSelectSnippet(snippet);
+        });
+      }
+    } else {
+      setViewedSnippet(null);
+    }
+  }, [searchParams, initialSnippets]);
+
 
   const refreshSnippets = () => {
     startTransition(async () => {
@@ -124,6 +152,10 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
     setViewedSnippet(snippet);
     const versions = await getSnippetVersions(snippet._id);
     setViewedSnippetVersions(versions);
+    // Update URL without navigating
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('view', snippet._id);
+    router.replace(`/dashboard?${params.toString()}`);
   };
 
   const handleDeleteRequest = (id: string) => {
@@ -151,7 +183,7 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
             setDeleteDialogOpen(false);
             setSnippetToDelete(null);
             if (viewedSnippet?._id === snippetToDelete) {
-                setViewedSnippet(null);
+                closeSnippetView();
             }
         }
       });
@@ -169,7 +201,7 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
     // Also update the viewed snippet if it's the one being edited
     if (viewedSnippet && snippetToEdit && viewedSnippet._id === snippetToEdit._id) {
         // Snippet data will be stale, so let's close the view and let user reopen
-        setViewedSnippet(null); 
+        closeSnippetView();
     }
     setSnippetToEdit(null);
   }
@@ -186,6 +218,9 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
   const closeSnippetView = () => {
     setViewedSnippet(null);
     setViewedSnippetVersions([]);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('view');
+    router.replace(`/dashboard?${params.toString()}`);
   }
 
   return (

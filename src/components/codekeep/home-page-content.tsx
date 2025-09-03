@@ -9,7 +9,9 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
   const router = useRouter();
 
   const handleSelectSnippet = (snippet: Snippet) => {
-    router.push(`/dashboard/snippet/${snippet._id}`);
+    // On the homepage, clicking a snippet should take you to the dashboard
+    // where you can then view it in the dialog.
+    router.push(`/dashboard?view=${snippet._id}`);
   };
 
   return (
@@ -22,8 +24,8 @@ export default function HomePageContent({ initialSnippets }: { initialSnippets: 
          <SnippetList 
             snippets={initialSnippets} 
             onSelectSnippet={handleSelectSnippet}
-            onEdit={() => {}}
-            onDelete={() => {}}
+            onEdit={() => {}} // No edit on public page
+            onDelete={() => {}} // No delete on public page
             isDashboard={false}
         />
       </div>
