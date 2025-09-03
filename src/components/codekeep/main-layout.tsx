@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSnippetForm } from './add-snippet-form';
 import { Code2, Plus } from 'lucide-react';
@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export function MainLayout({ children }: { children?: React.ReactNode }) {
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = React.useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -27,7 +27,7 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
     <>
       <div className="flex flex-col h-screen bg-background text-foreground">
         <header className="flex items-center justify-between gap-4 p-4 border-b">
-             <Link href="/dashboard" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
+             <Link href="/" className="text-xl font-bold tracking-tight text-accent flex items-center gap-2">
                 <Code2 />
                 CodeKeep
              </Link>
