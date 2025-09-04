@@ -8,26 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, History, Share2, Copy, Check, X, Loader2 } from 'lucide-react';
-import { updateSnippetSharing, deleteSnippet } from '@/app/actions';
+import { updateSnippetSharing } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
-import { Dialog, DialogHeader, DialogTitle, DialogClose } from '../ui/dialog';
-import { useRouter } from 'next/navigation';
-import { EditSnippetForm } from './edit-snippet-form';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { Separator } from '../ui/separator';
 
 const LoadingComponent = () => (
     <div className="p-4 border rounded-md min-h-[400px] flex items-center justify-center">
@@ -35,7 +23,7 @@ const LoadingComponent = () => (
     </div>
 );
 
-const SnippetHistoryView = dynamic(() => import('./snippet-history-view').then(mod => mod.SnippetHistoryView), { loading: LoadingComponent });
+const SnippetHistoryView = dynamic(() => import('./snippet-history-view').then(mod => mod.SnippetHistoryView), { loading: LoadingComponent, ssr: false });
 
 
 interface SnippetViewProps {
@@ -44,17 +32,13 @@ interface SnippetViewProps {
   onClose: () => void;
   onEdit: (snippet: Snippet) => void;
   onDeleteRequest: (id: string) => void;
-  onSnippetUpdated: () => void;
 }
 
-export function SnippetView({ snippet: initialSnippet, initialVersions, onClose, onEdit, onDeleteRequest, onSnippetUpdated }: SnippetViewProps) {
+export function SnippetView({ snippet: initialSnippet, initialVersions, onClose, onEdit, onDeleteRequest }: SnippetViewProps) {
   const [snippet, setSnippet] = useState(initialSnippet);
   const [isSharing, startSharingTransition] = React.useTransition();
   const [hasCopied, setHasCopied] = useState(false);
   
-  const router = useRouter();
-  const { toast } = useToast();
-
   useEffect(() => {
     setSnippet(initialSnippet);
   }, [initialSnippet]);
@@ -95,11 +79,19 @@ export function SnippetView({ snippet: initialSnippet, initialVersions, onClose,
 
   return (
     <>
-      <DialogHeader className="p-6 pb-0 flex-shrink-0">
+        <header className="p-4 border-b flex-shrink-0">
           <div className="flex justify-between items-start gap-4">
               <div className='flex-1 space-y-1.5'>
-                  <DialogTitle className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</DialogTitle>
+                  <h2 className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</h2>
                   <p className="text-sm text-muted-foreground">{snippet.description}</p>
+                   <div className="flex flex-wrap items-center gap-2 pt-2">
+                        <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
+                        {snippet.tags.map((tag) => (
+                        <Badge key={tag} variant="outline">
+                            {tag}
+                        </Badge>
+                        ))}
+                    </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => onEdit(snippet)}>
@@ -145,43 +137,29 @@ export function SnippetView({ snippet: initialSnippet, initialVersions, onClose,
                   </div>
                   </PopoverContent>
                 </Popover>
-                 <DialogClose asChild>
-                    <Button variant="ghost" size="icon" onClick={onClose}>
-                        <X className="h-5 w-5" />
-                        <span className="sr-only">Close</span>
-                    </Button>
-                </DialogClose>
+                <Separator orientation="vertical" className="h-6 mx-2" />
+                <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
+                    <X className="h-5 w-5" />
+                    <span className="sr-only">Close</span>
+                </Button>
               </div>
           </div>
+        </header>
 
-          <div className="flex flex-wrap items-center gap-2 pt-4">
-            <Badge variant="secondary" className="capitalize">{snippet.language}</Badge>
-            {snippet.tags.map((tag) => (
-              <Badge key={tag} variant="outline">
-                {tag}
-              </Badge>
-            ))}
+        <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0 overflow-y-auto min-h-0">
+          <div className="md:col-span-2 min-h-0 h-full">
+            <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
           </div>
-        </DialogHeader>
-
-        <main className="flex-1 space-y-6 overflow-y-auto px-6 pb-6 min-h-0">
-          <Tabs defaultValue="code" className="space-y-4 h-full flex flex-col">
-            <TabsList className="w-full justify-start md:w-auto overflow-x-auto">
-              <TabsTrigger value="code">Code</TabsTrigger>
-              <TabsTrigger value="history">
-                <History className="h-4 w-4 mr-2" />
-                History
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="code" className="flex-1 min-h-0">
-              <div className="h-full">
-                <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
-              </div>
-            </TabsContent>
-            <TabsContent value="history" className="flex-1 min-h-0">
-                <SnippetHistoryView snippet={snippet} initialVersions={initialVersions} />
-            </TabsContent>
-          </Tabs>
+          <div className="md:col-span-1 border-l bg-muted/20 overflow-y-auto min-h-0 h-full">
+            <Tabs defaultValue="history" className="h-full flex flex-col">
+                <TabsList className="m-2">
+                    <TabsTrigger value="history"><History className="h-4 w-4 mr-2" /> History</TabsTrigger>
+                </TabsList>
+                <TabsContent value="history" className="flex-1 p-2 min-h-0">
+                    <SnippetHistoryView snippet={snippet} initialVersions={initialVersions} />
+                </TabsContent>
+            </Tabs>
+          </div>
         </main>
     </>
   );
