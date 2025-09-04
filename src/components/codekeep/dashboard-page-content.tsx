@@ -28,6 +28,7 @@ import { AddSnippetForm } from './add-snippet-form';
 import { SnippetView } from './snippet-view';
 import { getSnippetVersions, getFilteredSnippets, getSnippetById } from '@/app/actions';
 import type { SnippetVersion } from '@/lib/data';
+import { SnippetHistoryView } from './snippet-history-view';
 
 function SearchAndFilterControls() {
     const router = useRouter();
@@ -112,6 +113,7 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [viewedSnippet, setViewedSnippet] = useState<Snippet | null>(null);
   const [viewedSnippetVersions, setViewedSnippetVersions] = useState<SnippetVersion[]>([]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
   useEffect(() => {
     setSnippets(initialSnippets);
@@ -194,6 +196,12 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
     setSnippetToEdit(snippet);
     setEditDialogOpen(true);
   }
+  
+  const handleHistoryRequest = (snippet: Snippet) => {
+    setViewedSnippet(snippet); // Ensure we have the right snippet context
+    setHistoryDialogOpen(true);
+  };
+
 
   const onSnippetUpdated = () => {
     setEditDialogOpen(false);
@@ -297,17 +305,37 @@ export default function DashboardPageContent({ initialSnippets }: { initialSnipp
           closeSnippetView();
         }
       }}>
-        <DialogContent className="max-w-6xl w-full h-[90vh] flex flex-col p-0">
+        <DialogContent className="max-w-4xl w-full h-[90vh] flex flex-col p-0">
             {viewedSnippet && (
                 <SnippetView 
                     snippet={viewedSnippet} 
-                    initialVersions={viewedSnippetVersions}
                     onClose={closeSnippetView}
                     onEdit={handleEditRequest}
                     onDeleteRequest={handleDeleteRequest}
-                    onSnippetUpdated={onSnippetUpdated}
+                    onHistoryRequest={handleHistoryRequest}
                 />
             )}
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-5xl w-full h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-6">
+                <DialogTitle>Version History</DialogTitle>
+            </DialogHeader>
+            <div className="px-6 pb-6 flex-1 min-h-0">
+              {viewedSnippet && (
+                  <SnippetHistoryView 
+                      snippet={viewedSnippet} 
+                      initialVersions={viewedSnippetVersions}
+                      onSnippetUpdated={() => {
+                        refreshSnippets();
+                        closeSnippetView();
+                        setHistoryDialogOpen(false);
+                      }}
+                  />
+              )}
+            </div>
         </DialogContent>
       </Dialog>
     </>

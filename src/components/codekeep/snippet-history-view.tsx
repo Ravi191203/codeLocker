@@ -2,7 +2,6 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { GitCompareArrows, History, Eye, Undo, Loader2 } from 'lucide-react';
 import DiffViewer from 'react-diff-viewer-continued';
@@ -28,9 +27,10 @@ import {
 interface SnippetHistoryViewProps {
   snippet: Snippet;
   initialVersions: SnippetVersion[];
+  onSnippetUpdated: () => void;
 }
 
-export function SnippetHistoryView({ snippet, initialVersions }: SnippetHistoryViewProps) {
+export function SnippetHistoryView({ snippet, initialVersions, onSnippetUpdated }: SnippetHistoryViewProps) {
   const [versions, setVersions] = useState<SnippetVersion[]>(initialVersions);
   const [isFetchingVersions, setIsFetchingVersions] = useState(false);
   const [isRestoring, setIsRestoring] = useState<string | null>(null);
@@ -38,12 +38,18 @@ export function SnippetHistoryView({ snippet, initialVersions }: SnippetHistoryV
   const [selectedVersions, setSelectedVersions] = useState<SnippetVersion[]>([]);
   const [diffDialogOpen, setDiffDialogOpen] = useState(false);
 
-  const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
+    // Only fetch versions if the snippet ID changes
     handleFetchVersions();
-  }, [snippet]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snippet._id]);
+
+  useEffect(() => {
+    // Update versions when initialVersions prop changes
+    setVersions(initialVersions);
+  }, [initialVersions]);
 
   const handleFetchVersions = async () => {
     setIsFetchingVersions(true);
@@ -71,7 +77,7 @@ export function SnippetHistoryView({ snippet, initialVersions }: SnippetHistoryV
         description: 'The snippet has been restored to the selected version.',
       });
       setViewingVersion(null);
-      router.refresh();
+      onSnippetUpdated(); // Callback to refresh the main list
     } catch (error) {
       console.error(error);
       toast({
@@ -113,7 +119,7 @@ export function SnippetHistoryView({ snippet, initialVersions }: SnippetHistoryV
 
   return (
     <>
-      <div className="p-4 border rounded-md space-y-4 min-h-[400px]">
+      <div className="border rounded-md space-y-4 h-full flex flex-col p-4">
         <div className="flex justify-end">
           <Button
             size="sm"
@@ -124,19 +130,21 @@ export function SnippetHistoryView({ snippet, initialVersions }: SnippetHistoryV
             Compare Versions
           </Button>
         </div>
-        {isFetchingVersions && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>}
+        {isFetchingVersions && <div className="text-sm text-muted-foreground mt-4 flex items-center justify-center flex-1"><Loader2 className="h-8 w-8 animate-spin" /></div>}
         {!isFetchingVersions && versions.length === 0 && (
-          <Alert>
-            <History className="h-4 w-4" />
-            <AlertTitle>No History Found</AlertTitle>
-            <AlertDescription>
-              There are no saved versions for this snippet yet. Edit and save the snippet to create a version.
-            </AlertDescription>
-          </Alert>
+          <div className="flex-1 flex items-center justify-center">
+            <Alert className="max-w-md">
+              <History className="h-4 w-4" />
+              <AlertTitle>No History Found</AlertTitle>
+              <AlertDescription>
+                There are no saved versions for this snippet yet. Edit and save the snippet to create a version.
+              </AlertDescription>
+            </Alert>
+          </div>
         )}
         {!isFetchingVersions && versions.length > 0 && (
-          <ScrollArea className="h-[300px]">
-            <div className="space-y-2 pr-4">
+          <ScrollArea className="flex-1 pr-4">
+            <div className="space-y-2">
               {versions.map(version => (
                 <div key={version._id} className="p-3 rounded-md bg-muted/50 flex justify-between items-center">
                   <div className="flex items-center gap-4">

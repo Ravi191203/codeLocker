@@ -2,42 +2,32 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
-import type { Snippet, SnippetVersion } from '@/lib/data';
+import type { Snippet } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, History, Share2, Copy, Check, X, Loader2 } from 'lucide-react';
 import { updateSnippetSharing } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 
-const LoadingComponent = () => (
-    <div className="p-4 border rounded-md min-h-[400px] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-    </div>
-);
-
-const SnippetHistoryView = dynamic(() => import('./snippet-history-view').then(mod => mod.SnippetHistoryView), { loading: LoadingComponent, ssr: false });
-
-
 interface SnippetViewProps {
   snippet: Snippet;
-  initialVersions: SnippetVersion[];
   onClose: () => void;
   onEdit: (snippet: Snippet) => void;
   onDeleteRequest: (id: string) => void;
+  onHistoryRequest: (snippet: Snippet) => void;
 }
 
-export function SnippetView({ snippet: initialSnippet, initialVersions, onClose, onEdit, onDeleteRequest }: SnippetViewProps) {
+export function SnippetView({ snippet: initialSnippet, onClose, onEdit, onDeleteRequest, onHistoryRequest }: SnippetViewProps) {
   const [snippet, setSnippet] = useState(initialSnippet);
   const [isSharing, startSharingTransition] = React.useTransition();
   const [hasCopied, setHasCopied] = useState(false);
+  const { toast } = useToast();
   
   useEffect(() => {
     setSnippet(initialSnippet);
@@ -98,6 +88,10 @@ export function SnippetView({ snippet: initialSnippet, initialVersions, onClose,
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
+                <Button variant="outline" size="sm" onClick={() => onHistoryRequest(snippet)}>
+                  <History className="h-4 w-4 mr-2" />
+                  History
+                </Button>
                 <Button variant="destructive" size="sm" onClick={() => onDeleteRequest(snippet._id)}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
@@ -146,20 +140,8 @@ export function SnippetView({ snippet: initialSnippet, initialVersions, onClose,
           </div>
         </header>
 
-        <main className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0 overflow-y-auto min-h-0">
-          <div className="md:col-span-2 min-h-0 h-full">
-            <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
-          </div>
-          <div className="md:col-span-1 border-l bg-muted/20 overflow-y-auto min-h-0 h-full">
-            <Tabs defaultValue="history" className="h-full flex flex-col">
-                <TabsList className="m-2">
-                    <TabsTrigger value="history"><History className="h-4 w-4 mr-2" /> History</TabsTrigger>
-                </TabsList>
-                <TabsContent value="history" className="flex-1 p-2 min-h-0">
-                    <SnippetHistoryView snippet={snippet} initialVersions={initialVersions} />
-                </TabsContent>
-            </Tabs>
-          </div>
+        <main className="flex-1 min-h-0">
+          <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
         </main>
     </>
   );
