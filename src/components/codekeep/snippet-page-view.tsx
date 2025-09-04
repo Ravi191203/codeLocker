@@ -2,41 +2,61 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import type { Snippet } from '@/lib/data';
+import type { Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, History, Share2, Copy, Check, X, Loader2 } from 'lucide-react';
-import { updateSnippetSharing } from '@/app/actions';
+import { Pencil, Trash2, History, Share2, Copy, Check, Loader2 } from 'lucide-react';
+import { updateSnippetSharing, deleteSnippet, getSnippetById, getSnippetVersions } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
+import { useRouter } from 'next/navigation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EditSnippetForm } from './edit-snippet-form';
+import { SnippetHistoryView } from './snippet-history-view';
 
 interface SnippetViewProps {
-  snippet: Snippet;
-  onClose: () => void;
-  onEdit: (snippet: Snippet) => void;
-  onDeleteRequest: (id: string) => void;
-  onHistoryRequest: (snippet: Snippet) => void;
+  initialSnippet: Snippet;
 }
 
-export function SnippetView({ snippet: initialSnippet, onClose, onEdit, onDeleteRequest, onHistoryRequest }: SnippetViewProps) {
+export function SnippetPageView({ initialSnippet }: SnippetViewProps) {
   const [snippet, setSnippet] = useState(initialSnippet);
+  const [versions, setVersions] = useState<SnippetVersion[]>([]);
   const [isSharing, startSharingTransition] = React.useTransition();
   const [hasCopied, setHasCopied] = useState(false);
   const { toast } = useToast();
-  
+  const router = useRouter();
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isDeleting, startDeleteTransition] = React.useTransition();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+
   useEffect(() => {
     setSnippet(initialSnippet);
   }, [initialSnippet]);
 
-  if (!snippet) {
-    return null;
-  }
-  
+  const refreshSnippet = async () => {
+      const updatedSnippet = await getSnippetById(snippet._id);
+      if (updatedSnippet) {
+          setSnippet(updatedSnippet);
+      }
+  };
+
   const handleSharingChange = (isPublic: boolean) => {
     startSharingTransition(async () => {
         try {
@@ -65,11 +85,48 @@ export function SnippetView({ snippet: initialSnippet, onClose, onEdit, onDelete
     });
   };
 
+  const handleDeleteConfirm = () => {
+    startDeleteTransition(async () => {
+        try {
+          await deleteSnippet(snippet._id);
+          toast({
+            title: 'Snippet deleted',
+            description: 'The snippet has been permanently deleted.',
+          });
+          router.push('/');
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: "Uh oh! Something went wrong.",
+            description: "Could not delete the snippet.",
+          });
+        } finally {
+            setDeleteDialogOpen(false);
+        }
+    });
+  }
+
+  const handleHistoryRequest = async () => {
+    const fetchedVersions = await getSnippetVersions(snippet._id);
+    setVersions(fetchedVersions);
+    setHistoryDialogOpen(true);
+  };
+  
+  const onSnippetUpdated = async () => {
+    await refreshSnippet();
+    setEditDialogOpen(false);
+    toast({
+        title: "Snippet updated!",
+        description: "Your changes have been saved.",
+    });
+  };
+
   const shareUrl = snippet.isPublic && snippet.shareId ? `${window.location.origin}/s/${snippet.shareId}` : '';
 
   return (
     <>
-        <header className="p-4 border-b flex-shrink-0">
+      <div className="p-4 md:p-8">
+        <header className="p-4 border-b mb-8">
           <div className="flex justify-between items-start gap-4">
               <div className='flex-1 space-y-1.5'>
                   <h2 className="text-2xl font-bold leading-none tracking-tight truncate">{snippet.name}</h2>
@@ -84,15 +141,15 @@ export function SnippetView({ snippet: initialSnippet, onClose, onEdit, onDelete
                     </div>
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => onEdit(snippet)}>
+                <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => onHistoryRequest(snippet)}>
+                <Button variant="outline" size="sm" onClick={handleHistoryRequest}>
                   <History className="h-4 w-4 mr-2" />
                   History
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => onDeleteRequest(snippet._id)}>
+                <Button variant="destructive" size="sm" onClick={() => setDeleteDialogOpen(true)}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </Button>
@@ -131,18 +188,61 @@ export function SnippetView({ snippet: initialSnippet, onClose, onEdit, onDelete
                   </div>
                   </PopoverContent>
                 </Popover>
-                <Separator orientation="vertical" className="h-6 mx-2" />
-                <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
-                    <X className="h-5 w-5" />
-                    <span className="sr-only">Close</span>
-                </Button>
               </div>
           </div>
         </header>
 
-        <main className="flex-1 min-h-0">
+        <main className="h-[60vh]">
           <CodeBlock code={snippet.code} language={snippet.language} className="h-full" />
         </main>
+      </div>
+
+       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this snippet from your collection.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-3xl p-0">
+          <DialogHeader className="p-6">
+            <DialogTitle>Edit Snippet</DialogTitle>
+          </DialogHeader>
+          <EditSnippetForm
+            snippet={snippet}
+            onSuccess={onSnippetUpdated}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+        <DialogContent className="max-w-5xl w-full h-[90vh] flex flex-col p-0">
+            <DialogHeader className="p-6">
+                <DialogTitle>Version History for: {snippet.name}</DialogTitle>
+            </DialogHeader>
+            <div className="px-6 pb-6 flex-1 min-h-0">
+              <SnippetHistoryView 
+                  snippet={snippet} 
+                  initialVersions={versions}
+                  onSnippetUpdated={() => {
+                    refreshSnippet();
+                    setHistoryDialogOpen(false);
+                  }}
+              />
+            </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

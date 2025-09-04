@@ -6,31 +6,23 @@ import type { Snippet } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
 import { FileCode, Loader2, MoreVertical, Pencil, Trash2, Copy, Check } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Button } from '../ui/button';
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 interface SnippetListProps {
   snippets: Snippet[];
   loading?: boolean;
-  isDashboard?: boolean;
-  onEdit: (snippet: Snippet) => void;
-  onDelete: (id: string) => void;
-  onSelectSnippet: (snippet: Snippet) => void;
 }
 
-function SnippetCard({ snippet, isDashboard, onSelectSnippet, onEdit, onDelete }: {
+function SnippetCard({ snippet }: {
   snippet: Snippet;
-  isDashboard: boolean;
-  onSelectSnippet: (snippet: Snippet) => void;
-  onEdit: (snippet: Snippet) => void;
-  onDelete: (id: string) => void;
 }) {
   const [hasCopied, setHasCopied] = useState(false);
   const { toast } = useToast();
 
   const copyToClipboard = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     navigator.clipboard.writeText(snippet.code).then(() => {
       setHasCopied(true);
@@ -44,75 +36,51 @@ function SnippetCard({ snippet, isDashboard, onSelectSnippet, onEdit, onDelete }
   };
 
   return (
-    <Card
-      key={snippet._id}
-      onClick={() => onSelectSnippet(snippet)}
-      className="flex flex-col cursor-pointer transition-all hover:shadow-lg hover:border-primary/50"
-    >
-      <CardHeader className="flex-row items-start justify-between gap-4 p-4">
-        <div className="flex-1">
-          <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
-          <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
-        </div>
-        {isDashboard && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(snippet); }}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDelete(snippet._id); }} className="text-destructive">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-        )}
-      </CardHeader>
-      <CardContent className="p-4 pt-0 flex-grow">
-        <div className="h-24 overflow-hidden rounded-md bg-muted/50 relative group/code p-2">
-           <Button
-              size="icon"
-              variant="ghost"
-              className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover/code:opacity-100 transition-opacity focus:opacity-100 z-10"
-              onClick={copyToClipboard}
-              aria-label="Copy code"
-            >
-              {hasCopied ? (
-                <Check className="h-4 w-4 text-green-500" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-            <pre className="text-xs font-mono whitespace-pre-wrap overflow-hidden h-full">
-              {snippet.code}
-            </pre>
-        </div>
-      </CardContent>
-      <CardFooter className="p-4 pt-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="secondary" className="text-xs capitalize">{snippet.language}</Badge>
-            {snippet.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
-            ))}
-          </div>
-      </CardFooter>
-    </Card>
+    <Link href={`/snippets/${snippet._id}`} className="flex">
+        <Card
+        key={snippet._id}
+        className="flex flex-col cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 w-full"
+        >
+        <CardHeader className="flex-row items-start justify-between gap-4 p-4">
+            <div className="flex-1">
+            <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
+            <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
+            </div>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 flex-grow">
+            <div className="h-24 overflow-hidden rounded-md bg-muted/50 relative group/code p-2">
+            <button
+                className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover/code:opacity-100 transition-opacity focus:opacity-100 z-10 p-1 rounded-md hover:bg-background"
+                onClick={copyToClipboard}
+                aria-label="Copy code"
+                >
+                {hasCopied ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                    <Copy className="h-4 w-4" />
+                )}
+                </button>
+                <pre className="text-xs font-mono whitespace-pre-wrap overflow-hidden h-full">
+                {snippet.code}
+                </pre>
+            </div>
+        </CardContent>
+        <CardFooter className="p-4 pt-0">
+            <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="secondary" className="text-xs capitalize">{snippet.language}</Badge>
+                {snippet.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">{tag}</Badge>
+                ))}
+            </div>
+        </CardFooter>
+        </Card>
+    </Link>
   )
 }
 
 export function SnippetList({
   snippets,
   loading,
-  isDashboard = true,
-  onEdit,
-  onDelete,
-  onSelectSnippet
 }: SnippetListProps) {
 
   if (loading) {
@@ -157,10 +125,6 @@ export function SnippetList({
               <SnippetCard 
                 key={snippet._id}
                 snippet={snippet}
-                isDashboard={isDashboard}
-                onSelectSnippet={onSelectSnippet}
-                onEdit={onEdit}
-                onDelete={onDelete}
               />
             ))}
           </div>
