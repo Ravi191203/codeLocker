@@ -6,7 +6,7 @@ import type { Snippet, SnippetVersion } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
-import { Pencil, Trash2, History, Share2, Copy, Check, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, History, Share2, Copy, Check, Loader2, X } from 'lucide-react';
 import { updateSnippetSharing, deleteSnippet, getSnippetById, getSnippetVersions } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -141,6 +141,10 @@ export function SnippetPageView({ initialSnippet }: SnippetViewProps) {
                     </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => router.push('/')}>
+                  <X className="h-4 w-4 mr-2" />
+                  Close
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
