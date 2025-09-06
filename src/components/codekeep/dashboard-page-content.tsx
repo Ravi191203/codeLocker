@@ -183,7 +183,7 @@ export default function DashboardPageContent() {
                 <span>New Snippet</span>
             </Button>
         </div>
-        <Tabs defaultValue="private" className="w-full">
+        <Tabs defaultValue="public" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="private">
                     <Lock className="mr-2 h-4 w-4" />
