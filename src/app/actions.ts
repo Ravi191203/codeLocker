@@ -31,7 +31,7 @@ export async function signup(data: any) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword });
+    const newUser = new User({ email, password: hashedPassword, name: email.split('@')[0] });
     await newUser.save();
 
     const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '7d' });
@@ -84,6 +84,37 @@ export async function login(data: any) {
 export async function logout() {
   cookies().delete(COOKIE_NAME);
   redirect('/login');
+}
+
+export async function getCurrentUser() {
+  const cookieStore = cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+
+  if (!token) return null;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    await dbConnect();
+    const user = await User.findById(decoded.userId).select('-password');
+    return JSON.parse(JSON.stringify(user));
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function updateUserProfile(data: { name: string, profilePhotoUrl: string }) {
+    const user = await getCurrentUser();
+    if (!user) {
+        throw new Error("Not authenticated");
+    }
+    
+    await dbConnect();
+    await User.findByIdAndUpdate(user._id, {
+        name: data.name,
+        profilePhotoUrl: data.profilePhotoUrl
+    });
+
+    revalidatePath('/profile');
 }
 
 
