@@ -44,7 +44,6 @@ function SnippetCard({ snippet }: {
         <CardHeader className="flex-row items-start justify-between gap-4 p-4">
             <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-2">
-                    {snippet.isPublic ? <Globe className="h-4 w-4 text-muted-foreground" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
                     <CardTitle className="text-base font-semibold leading-none">{snippet.name}</CardTitle>
                 </div>
                 <CardDescription className="text-xs line-clamp-2">{snippet.description}</CardDescription>
@@ -100,38 +99,18 @@ export function SnippetList({
       <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-8 rounded-lg border-dashed border-2">
         <FileCode className="w-16 h-16 mb-4" />
         <h3 className="text-lg font-semibold">No Snippets Found</h3>
-        <p className="text-sm">Try a different search term or add a new snippet.</p>
+        <p className="text-sm">Try a different search term or create a new snippet in this category.</p>
       </div>
     );
   }
 
-  const groupedSnippets = snippets.reduce((acc, snippet) => {
-    const { language } = snippet;
-    if (!acc[language]) {
-      acc[language] = [];
-    }
-    acc[language].push(snippet);
-    return acc;
-  }, {} as Record<string, Snippet[]>);
-
   return (
-    <div className="space-y-8">
-      {Object.entries(groupedSnippets).map(([language, langSnippets]) => (
-        <section key={language}>
-          <h3 className="text-xl font-semibold capitalize mb-4 tracking-tight flex items-center gap-3">
-             <FileCode className="w-6 h-6 text-primary" />
-             {language}
-             <Badge variant="outline">{langSnippets.length}</Badge>
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {langSnippets.map((snippet) => (
-              <SnippetCard 
-                key={snippet._id}
-                snippet={snippet}
-              />
-            ))}
-          </div>
-        </section>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {snippets.map((snippet) => (
+        <SnippetCard 
+          key={snippet._id}
+          snippet={snippet}
+        />
       ))}
     </div>
   );

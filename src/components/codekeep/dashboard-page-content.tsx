@@ -10,9 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AddSnippetForm } from './add-snippet-form';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, Globe, Lock } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 // Debounce function
 function debounce(func: (...args: any[]) => void, delay: number) {
@@ -145,6 +147,9 @@ export default function DashboardPageContent() {
     refreshSnippets();
   }
 
+  const privateSnippets = snippets.filter(s => !s.isPublic);
+  const publicSnippets = snippets.filter(s => s.isPublic);
+
   return (
     <>
       <div className="p-4 md:p-8">
@@ -160,10 +165,30 @@ export default function DashboardPageContent() {
                 <span>New Snippet</span>
             </Button>
         </div>
-         <SnippetList 
-            snippets={snippets} 
-            loading={isPending}
-        />
+        <Tabs defaultValue="private" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="private">
+                    <Lock className="mr-2 h-4 w-4" />
+                    Private ({privateSnippets.length})
+                </TabsTrigger>
+                <TabsTrigger value="public">
+                    <Globe className="mr-2 h-4 w-4" />
+                    Public ({publicSnippets.length})
+                </TabsTrigger>
+            </TabsList>
+            <TabsContent value="private" className="mt-6">
+                <SnippetList 
+                    snippets={privateSnippets} 
+                    loading={isPending}
+                />
+            </TabsContent>
+            <TabsContent value="public" className="mt-6">
+                <SnippetList 
+                    snippets={publicSnippets} 
+                    loading={isPending}
+                />
+            </TabsContent>
+        </Tabs>
       </div>
 
       <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
