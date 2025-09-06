@@ -8,8 +8,100 @@ import { revalidatePath } from 'next/cache';
 import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import {v4 as uuidv4} from 'uuid';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 12);
+
+// --- AUTH ACTIONS ---
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
+const COOKIE_NAME = 'session';
+
+export async function signup(data: any) {
+  try {
+    await dbConnect();
+    const { email, password } = data;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return { success: false, message: 'User with this email already exists.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ email, password: hashedPassword });
+    await newUser.save();
+
+    const token = jwt.sign({ userId: newUser._id }, JWT_SECRET, { expiresIn: '7d' });
+
+    cookies().set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: '/',
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'An unexpected error occurred.' };
+  }
+}
+
+export async function login(data: any) {
+  try {
+    await dbConnect();
+    const { email, password } = data;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return { success: false, message: 'Invalid credentials.' };
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return { success: false, message: 'Invalid credentials.' };
+    }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
+    cookies().set(COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: '/',
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'An unexpected error occurred.' };
+  }
+}
+
+export async function logout() {
+  cookies().delete(COOKIE_NAME);
+  redirect('/login');
+}
+
+export async function getSession() {
+  const token = cookies().get(COOKIE_NAME)?.value;
+  if (!token) return null;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    await dbConnect();
+    const user = await User.findById(decoded.userId).select('-password');
+    if (!user) return null;
+    return { user: JSON.parse(JSON.stringify(user)) };
+  } catch (error) {
+    return null;
+  }
+}
+
+// --- SNIPPET ACTIONS ---
 
 export async function getSnippets() {
   await dbConnect();
@@ -199,8 +291,7 @@ export async function getSharedSnippet(shareId: string) {
     return JSON.parse(JSON.stringify(snippet));
 }
 
-// For this example, we'll have a single default user.
-// In a real app, you'd have user authentication and management.
+// This function is being replaced by JWT auth but kept for now.
 export async function getUser() {
   await dbConnect();
   let user = await User.findOne({ username: 'default' });
@@ -209,6 +300,8 @@ export async function getUser() {
     const apiKey = `ck_live_${uuidv4().replace(/-/g, '')}`;
     user = new User({
         username: 'default',
+        email: 'default@example.com',
+        password: 'password', // In a real app, this should be securely hashed
         apiKey: apiKey
     });
     await user.save();

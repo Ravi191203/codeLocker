@@ -3,17 +3,22 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MainLayout } from '@/components/codekeep/main-layout';
+import { getSession } from './actions';
 
 export const metadata: Metadata = {
   title: 'CodeLocker',
   description: 'Your personal code snippet manager.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
+  const { pathname } = new URL(process.env.APP_URL || 'http://localhost:3000');
+
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
   
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
@@ -35,9 +40,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <MainLayout>
-            {children}
-          </MainLayout>
+          {session ? (
+             <MainLayout>
+              {children}
+            </MainLayout>
+          ) : (
+            <>
+            {isAuthPage ? children : <MainLayout>{children}</MainLayout>}
+            </>
+          )}
+         
           <Toaster />
         </ThemeProvider>
       </body>
