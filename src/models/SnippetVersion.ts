@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface ISnippetVersion extends Document {
   snippetId: mongoose.Schema.Types.ObjectId;
@@ -6,7 +6,7 @@ export interface ISnippetVersion extends Document {
   description: string;
   code: string;
   language: string;
-  tags: [string];
+  tags: string[];
   createdAt: Date;
 }
 
@@ -22,4 +22,6 @@ const SnippetVersionSchema: Schema = new Schema(
   { timestamps: { createdAt: true, updatedAt: false } } // Only need createdAt for versions
 );
 
-export default mongoose.models.SnippetVersion || mongoose.model<ISnippetVersion>('SnippetVersion', SnippetVersionSchema);
+const SnippetVersion: Model<ISnippetVersion> = mongoose.models.SnippetVersion || mongoose.model<ISnippetVersion>('SnippetVersion', SnippetVersionSchema);
+
+export default SnippetVersion;

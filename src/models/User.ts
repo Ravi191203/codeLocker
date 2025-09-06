@@ -1,9 +1,11 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
+import { customAlphabet } from 'nanoid';
+
+const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 24);
 
 export interface IUser extends Document {
   email: string;
   password?: string;
-  username: string;
   apiKey: string;
 }
 
@@ -11,15 +13,16 @@ const UserSchema: Schema = new Schema(
   {
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    username: { type: String, required: true, unique: true, default: () => new mongoose.Types.ObjectId().toHexString() },
     apiKey: { 
         type: String, 
         required: true, 
         unique: true, 
-        default: () => `ck_live_${new mongoose.Types.ObjectId().toHexString()}`
+        default: () => `ck_live_${nanoid()}`
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+
+export default User;

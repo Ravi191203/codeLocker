@@ -86,20 +86,6 @@ export async function logout() {
   redirect('/login');
 }
 
-export async function getSession() {
-  const token = cookies().get(COOKIE_NAME)?.value;
-  if (!token) return null;
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-    await dbConnect();
-    const user = await User.findById(decoded.userId).select('-password');
-    if (!user) return null;
-    return { user: JSON.parse(JSON.stringify(user)) };
-  } catch (error) {
-    return null;
-  }
-}
 
 // --- SNIPPET ACTIONS ---
 
@@ -207,8 +193,10 @@ export async function deleteSnippet(id: string) {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    await Snippet.findByIdAndDelete(id, { session });
-    await SnippetVersion.deleteMany({ snippetId: id }, { session });
+    const snippet = await Snippet.findByIdAndDelete(id, { session });
+    if (snippet) {
+      await SnippetVersion.deleteMany({ snippetId: snippet._id }, { session });
+    }
     await session.commitTransaction();
   } catch (error) {
     await session.abortTransaction();

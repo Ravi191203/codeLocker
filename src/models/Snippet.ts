@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Model } from 'mongoose';
 
 export interface ISnippet extends Document {
   name: string;
@@ -7,7 +7,9 @@ export interface ISnippet extends Document {
   language: string;
   tags: string[];
   isPublic: boolean;
-  shareId: string;
+  shareId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const SnippetSchema: Schema = new Schema(
@@ -23,4 +25,9 @@ const SnippetSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Snippet || mongoose.model<ISnippet>('Snippet', SnippetSchema);
+// This is the robust way to define a model in Next.js/Mongoose.
+// It checks if the model already exists before trying to create it,
+// preventing errors during hot-reloading in development.
+const Snippet: Model<ISnippet> = mongoose.models.Snippet || mongoose.model<ISnippet>('Snippet', SnippetSchema);
+
+export default Snippet;
