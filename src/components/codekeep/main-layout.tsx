@@ -76,9 +76,9 @@ export function MainLayout({ children }: { children?: React.ReactNode }) {
                          <Button variant="ghost" className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src={session.user.profilePhotoUrl} alt={session.user.name} />
-                                <AvatarFallback>{session.user.name?.[0].toUpperCase()}</AvatarFallback>
+                                <AvatarFallback>{(session.user.name || session.user.email)?.[0].toUpperCase()}</AvatarFallback>
                             </Avatar>
-                            <span className="hidden md:inline">{session.user.name}</span>
+                            <span className="hidden md:inline">{session.user.name || session.user.email}</span>
                             <ChevronDown className="h-4 w-4" />
                          </Button>
                       </DropdownMenuTrigger>
