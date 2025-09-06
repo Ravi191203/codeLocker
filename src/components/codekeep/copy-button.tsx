@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Check, Copy } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "react-toastify";
 
 interface CopyButtonProps {
     textToCopy: string;
@@ -11,15 +11,11 @@ interface CopyButtonProps {
 
 export function CopyButton({ textToCopy }: CopyButtonProps) {
     const [hasCopied, setHasCopied] = useState(false);
-    const { toast } = useToast();
 
     const handleCopy = () => {
         navigator.clipboard.writeText(textToCopy).then(() => {
             setHasCopied(true);
-            toast({
-                title: "Copied!",
-                description: "The text has been copied to your clipboard.",
-            });
+            toast.success("Copied!");
             setTimeout(() => {
                 setHasCopied(false);
             }, 2000);

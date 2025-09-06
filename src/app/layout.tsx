@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
 import { ThemeProvider } from '@/components/theme-provider';
 import { MainLayout } from '@/components/codekeep/main-layout';
 
@@ -38,7 +39,18 @@ export default async function RootLayout({
           <MainLayout>
             {children}
           </MainLayout>
-          <Toaster />
+          <ToastContainer
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="dark"
+           />
         </ThemeProvider>
       </body>
     </html>

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { CodeBlock } from './code-block';
 import { Pencil, Trash2, History, Share2, Copy, Check, Loader2, X } from 'lucide-react';
 import { updateSnippetSharing, deleteSnippet, getSnippetById, getSnippetVersions } from '@/app/actions';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
@@ -38,7 +38,6 @@ export function SnippetPageView({ initialSnippet }: SnippetViewProps) {
   const [versions, setVersions] = useState<SnippetVersion[]>([]);
   const [isSharing, startSharingTransition] = React.useTransition();
   const [hasCopied, setHasCopied] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -62,16 +61,9 @@ export function SnippetPageView({ initialSnippet }: SnippetViewProps) {
         try {
             const updatedSnippet = await updateSnippetSharing(snippet._id, isPublic);
             setSnippet(updatedSnippet);
-            toast({
-                title: isPublic ? 'Sharing Enabled' : 'Sharing Disabled',
-                description: isPublic ? 'Your snippet is now public.' : 'Your snippet is now private.',
-            });
+            toast.success(isPublic ? 'Your snippet is now public.' : 'Your snippet is now private.');
         } catch (error) {
-            toast({
-                variant: 'destructive',
-                title: 'Uh oh! Something went wrong.',
-                description: 'Could not update sharing settings.',
-            });
+            toast.error('Could not update sharing settings.');
         }
     });
   };
@@ -89,17 +81,10 @@ export function SnippetPageView({ initialSnippet }: SnippetViewProps) {
     startDeleteTransition(async () => {
         try {
           await deleteSnippet(snippet._id);
-          toast({
-            title: 'Snippet deleted',
-            description: 'The snippet has been permanently deleted.',
-          });
+          toast.success('The snippet has been permanently deleted.');
           router.push('/');
         } catch (error) {
-          toast({
-            variant: "destructive",
-            title: "Uh oh! Something went wrong.",
-            description: "Could not delete the snippet.",
-          });
+          toast.error("Could not delete the snippet.");
         } finally {
             setDeleteDialogOpen(false);
         }
@@ -115,10 +100,7 @@ export function SnippetPageView({ initialSnippet }: SnippetViewProps) {
   const onSnippetUpdated = async () => {
     await refreshSnippet();
     setEditDialogOpen(false);
-    toast({
-        title: "Snippet updated!",
-        description: "Your changes have been saved.",
-    });
+    toast.success("Your changes have been saved.");
   };
 
   const shareUrl = snippet.isPublic && snippet.shareId ? `${window.location.origin}/s/${snippet.shareId}` : '';

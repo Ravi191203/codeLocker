@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { login } from '@/app/actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,6 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -34,15 +33,11 @@ export function LoginForm() {
     startTransition(async () => {
       const result = await login(values);
       if (result.success) {
-        toast({ title: 'Login Successful', description: "Welcome back!" });
+        toast.success("Welcome back!");
         router.push('/');
         router.refresh(); // To reflect logged-in state
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Login Failed',
-          description: result.message,
-        });
+        toast.error(result.message);
       }
     });
   }

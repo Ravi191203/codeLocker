@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { GitCompareArrows, History, Eye, Undo, Loader2 } from 'lucide-react';
 import DiffViewer from 'react-diff-viewer-continued';
 
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { getSnippetVersions, restoreSnippetVersion } from '@/app/actions';
 import type { Snippet, SnippetVersion } from '@/lib/data';
 
@@ -38,8 +38,6 @@ export function SnippetHistoryView({ snippet, initialVersions, onSnippetUpdated 
   const [selectedVersions, setSelectedVersions] = useState<SnippetVersion[]>([]);
   const [diffDialogOpen, setDiffDialogOpen] = useState(false);
 
-  const { toast } = useToast();
-
   useEffect(() => {
     // Only fetch versions if the snippet ID changes
     handleFetchVersions();
@@ -58,11 +56,7 @@ export function SnippetHistoryView({ snippet, initialVersions, onSnippetUpdated 
       setVersions(result);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'Could not fetch version history.',
-      });
+      toast.error('Could not fetch version history.');
     } finally {
       setIsFetchingVersions(false);
     }
@@ -72,19 +66,12 @@ export function SnippetHistoryView({ snippet, initialVersions, onSnippetUpdated 
     setIsRestoring(versionId);
     try {
       await restoreSnippetVersion(versionId);
-      toast({
-        title: 'Snippet Restored!',
-        description: 'The snippet has been restored to the selected version.',
-      });
+      toast.success('The snippet has been restored to the selected version.');
       setViewingVersion(null);
       onSnippetUpdated(); // Callback to refresh the main list
     } catch (error) {
       console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Uh oh! Something went wrong.',
-        description: 'Could not restore the selected version.',
-      });
+      toast.error('Could not restore the selected version.');
     } finally {
       setIsRestoring(null);
     }
@@ -109,11 +96,7 @@ export function SnippetHistoryView({ snippet, initialVersions, onSnippetUpdated 
     if (selectedVersions.length === 2) {
       setDiffDialogOpen(true);
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Select Two Versions',
-        description: 'Please select exactly two versions to compare.',
-      });
+      toast.warn('Please select exactly two versions to compare.');
     }
   };
 

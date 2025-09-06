@@ -8,9 +8,9 @@ import { languages, type Snippet } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSnippetForm } from './add-snippet-form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { Input } from '@/components/ui/input';
-import { Search, Globe, Lock, Plus, ShieldCheck, Sparkles, MailQuestion, Loader2 } from 'lucide-react';
+import { Search, Globe, Lock, Plus, ShieldCheck, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -33,7 +33,6 @@ function SearchAndFilterControls() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isGenerating, setIsGenerating] = useState(false);
-    const { toast } = useToast();
 
     const sortOption = searchParams.get('sort') || 'newest';
     const languageFilter = searchParams.get('lang') || 'all';
@@ -52,11 +51,7 @@ function SearchAndFilterControls() {
 
     const handleAiSearch = async () => {        
         if (!searchTerm || searchTerm.length < 5) {
-             toast({
-                variant: 'destructive',
-                title: 'AI Search Requires More Detail',
-                description: 'Please enter a more descriptive search query (at least 5 characters).',
-            });
+             toast.warn('AI Search Requires More Detail. Please enter a more descriptive search query (at least 5 characters).');
             return;
         }
         setIsGenerating(true);
@@ -66,11 +61,7 @@ function SearchAndFilterControls() {
             handleFilterChange('q', result.searchQuery);
         } catch (error) {
             console.error(error);
-            toast({
-                variant: 'destructive',
-                title: 'AI Search Failed',
-                description: 'There was a problem generating the search query.',
-            });
+            toast.error('AI Search Failed. There was a problem generating the search query.');
         } finally {
             setIsGenerating(false);
         }
@@ -140,7 +131,6 @@ export default function DashboardPageContent() {
   const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
   
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [isPrivateUnlocked, setIsPrivateUnlocked] = useState(false);
@@ -156,14 +146,10 @@ export default function DashboardPageContent() {
         setSnippets(dbSnippets);
       } catch (error) {
         console.error(error);
-        toast({
-          variant: 'destructive',
-          title: 'Error fetching snippets',
-          description: 'Could not retrieve snippet data.',
-        });
+        toast.error('Could not retrieve snippet data.');
       }
     });
-  }, [searchParams, toast]);
+  }, [searchParams]);
 
   useEffect(() => {
     refreshSnippets();
@@ -184,26 +170,16 @@ export default function DashboardPageContent() {
 
   const onSnippetAdded = () => {
     setAddDialogOpen(false);
-    toast({
-        title: "Snippet created!",
-        description: "Your new snippet has been saved successfully.",
-    });
+    toast.success("Your new snippet has been saved successfully.");
     refreshSnippets();
   }
 
   const handleUnlockPrivate = () => {
     if (secretKeyInput === 'rrgs_dev') {
       setIsPrivateUnlocked(true);
-      toast({
-        title: 'Success!',
-        description: 'Private snippets unlocked.',
-      });
+      toast.success('Private snippets unlocked.');
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Access Denied',
-        description: 'The secret key is incorrect.',
-      });
+      toast.error('The secret key is incorrect.');
     }
   };
 

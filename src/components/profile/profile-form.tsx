@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { updateUserProfile } from '@/app/actions';
 import { IUser } from '@/models/User';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -26,7 +26,6 @@ type ProfileFormProps = {
 
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter();
-  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -43,14 +42,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
     startTransition(async () => {
       try {
         await updateUserProfile(values);
-        toast({ title: 'Profile Updated', description: 'Your changes have been saved.' });
+        toast.success('Your changes have been saved.');
         router.refresh(); // Refresh the page to show new data and update layout
       } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Update Failed',
-          description: 'An unexpected error occurred.',
-        });
+        toast.error('An unexpected error occurred.');
       }
     });
   }

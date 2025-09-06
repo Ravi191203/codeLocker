@@ -24,7 +24,7 @@ import {
 import { languages } from '@/lib/data';
 import { useTransition, useState, useEffect, useCallback } from 'react';
 import { addSnippet } from '@/app/actions';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { DialogFooter } from '../ui/dialog';
 import { generateSnippetDetails } from '@/ai/flows/generate-snippet-details';
 import { Sparkles, Globe, Lock } from 'lucide-react';
@@ -57,7 +57,6 @@ function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
 export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,23 +85,16 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
           if (languages.includes(result.language.toLowerCase())) {
             form.setValue("language", result.language.toLowerCase(), { shouldValidate: true });
           }
-          toast({
-            title: "AI Assistant finished!",
-            description: "The name, description, language and tags have been filled out.",
-          });
+          toast.info("AI Assistant finished! The name, description, language and tags have been filled out.");
         }
       } catch (error) {
         console.error(error);
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: "There was a problem with the AI request.",
-        });
+        toast.error("There was a problem with the AI request.");
       } finally {
         setIsGenerating(false);
       }
     }, 1000), // 1 second debounce delay
-    [form, toast]
+    [form]
   );
   
   useEffect(() => {
@@ -120,11 +112,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
         await addSnippet(values);
         onSuccess();
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: "There was a problem with your request.",
-        });
+        toast.error("There was a problem with your request.");
       }
     });
   }

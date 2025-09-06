@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { signup } from '@/app/actions';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,6 @@ const formSchema = z.object({
 
 export function SignupForm() {
   const router = useRouter();
-  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -39,15 +38,11 @@ export function SignupForm() {
     startTransition(async () => {
       const result = await signup(values);
       if (result.success) {
-        toast({ title: 'Account Created', description: "Welcome to CodeKeep!" });
+        toast.success("Welcome to CodeKeep!");
         router.push('/');
         router.refresh(); 
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Signup Failed',
-          description: result.message,
-        });
+        toast.error(result.message);
       }
     });
   }

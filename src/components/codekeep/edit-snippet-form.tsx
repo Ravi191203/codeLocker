@@ -25,7 +25,7 @@ import {
 import { languages, type Snippet } from '@/lib/data';
 import { useTransition } from 'react';
 import { updateSnippet } from '@/app/actions';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { DialogFooter } from '../ui/dialog';
 
 const formSchema = z.object({
@@ -43,7 +43,6 @@ type EditSnippetFormProps = {
 
 export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
   const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,17 +59,10 @@ export function EditSnippetForm({ snippet, onSuccess }: EditSnippetFormProps) {
     startTransition(async () => {
       try {
         await updateSnippet(snippet._id, values);
-        toast({
-          title: "Snippet updated!",
-          description: "Your snippet has been saved successfully.",
-        });
+        toast.success("Your snippet has been saved successfully.");
         onSuccess();
       } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "Uh oh! Something went wrong.",
-          description: "There was a problem with your request.",
-        });
+        toast.error("There was a problem with your request.");
       }
     });
   }

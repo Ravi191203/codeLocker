@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import { cn } from '@/lib/utils';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -15,16 +15,12 @@ interface CodeBlockProps {
 }
 
 export function CodeBlock({ code, language, className }: CodeBlockProps) {
-  const { toast } = useToast();
   const [hasCopied, setHasCopied] = useState(false);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(code).then(() => {
       setHasCopied(true);
-      toast({
-        title: 'Copied to clipboard!',
-        description: 'You can now paste the code anywhere.',
-      });
+      toast.success('Copied to clipboard!');
       setTimeout(() => {
         setHasCopied(false);
       }, 2000);

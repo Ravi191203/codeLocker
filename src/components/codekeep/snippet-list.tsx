@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '../ui/badge';
 import { FileCode, Loader2, MoreVertical, Pencil, Trash2, Copy, Check, Globe, Lock } from 'lucide-react';
 import React, { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'react-toastify';
 import Link from 'next/link';
 
 interface SnippetListProps {
@@ -19,16 +19,13 @@ function SnippetCard({ snippet }: {
   snippet: Snippet;
 }) {
   const [hasCopied, setHasCopied] = useState(false);
-  const { toast } = useToast();
 
   const copyToClipboard = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     navigator.clipboard.writeText(snippet.code).then(() => {
       setHasCopied(true);
-      toast({
-        title: 'Copied to clipboard!',
-      });
+      toast.success('Copied to clipboard!');
       setTimeout(() => {
         setHasCopied(false);
       }, 2000);
