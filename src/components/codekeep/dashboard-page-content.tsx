@@ -10,10 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AddSnippetForm } from './add-snippet-form';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Search, Globe, Lock } from 'lucide-react';
+import { Search, Globe, Lock, Plus, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Plus } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
 
 // Debounce function
@@ -101,6 +101,8 @@ export default function DashboardPageContent() {
   const { toast } = useToast();
   
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [isPrivateUnlocked, setIsPrivateUnlocked] = useState(false);
+  const [secretKeyInput, setSecretKeyInput] = useState('');
 
   const refreshSnippets = useCallback(() => {
     startTransition(async () => {
@@ -147,6 +149,22 @@ export default function DashboardPageContent() {
     refreshSnippets();
   }
 
+  const handleUnlockPrivate = () => {
+    if (secretKeyInput === 'rrgs_dev') {
+      setIsPrivateUnlocked(true);
+      toast({
+        title: 'Success!',
+        description: 'Private snippets unlocked.',
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Access Denied',
+        description: 'The secret key is incorrect.',
+      });
+    }
+  };
+
   const privateSnippets = snippets.filter(s => !s.isPublic);
   const publicSnippets = snippets.filter(s => s.isPublic);
 
@@ -177,10 +195,38 @@ export default function DashboardPageContent() {
                 </TabsTrigger>
             </TabsList>
             <TabsContent value="private" className="mt-6">
-                <SnippetList 
-                    snippets={privateSnippets} 
-                    loading={isPending}
-                />
+               {isPrivateUnlocked ? (
+                    <SnippetList 
+                        snippets={privateSnippets} 
+                        loading={isPending}
+                    />
+               ) : (
+                    <div className="flex justify-center items-center py-16">
+                        <Card className="w-full max-w-md">
+                            <CardHeader className="text-center">
+                                <CardTitle className="flex items-center justify-center gap-2">
+                                    <ShieldCheck className="h-6 w-6" />
+                                    Secret Box
+                                </CardTitle>
+                                <CardDescription>
+                                    Enter the secret key to access your private snippets.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <Input 
+                                    type="password"
+                                    placeholder="Enter secret key..."
+                                    value={secretKeyInput}
+                                    onChange={(e) => setSecretKeyInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleUnlockPrivate()}
+                                />
+                                <Button className="w-full" onClick={handleUnlockPrivate}>
+                                    Unlock
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </div>
+               )}
             </TabsContent>
             <TabsContent value="public" className="mt-6">
                 <SnippetList 
