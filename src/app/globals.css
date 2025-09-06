@@ -10,7 +10,7 @@ body {
   :root {
     --background: 231 15% 18%;
     --foreground: 0 0% 98%;
-    --card: 231 15% 18%;
+    --card: 231 15% 18% / 0.1;
     --card-foreground: 0 0% 98%;
     --popover: 231 15% 18%;
     --popover-foreground: 0 0% 98%;
@@ -33,7 +33,7 @@ body {
   .dark {
     --background: 231 15% 18%;
     --foreground: 0 0% 98%;
-    --card: 231 15% 18%;
+    --card: 231 15% 18% / 0.1;
     --card-foreground: 0 0% 98%;
     --popover: 231 15% 18%;
     --popover-foreground: 0 0% 98%;
@@ -61,4 +61,10 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@layer utilities {
+    .glassmorphism {
+        @apply bg-card/60 backdrop-blur-lg border border-border/20;
+    }
 }
