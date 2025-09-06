@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AddSnippetForm } from './add-snippet-form';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Search, Globe, Lock, Plus, ShieldCheck } from 'lucide-react';
+import { Search, Globe, Lock, Plus, ShieldCheck, Sparkles, MailQuestion, Loader2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { generateSearchQuery } from '@/ai/flows/generate-search-query';
 
 
 // Debounce function
@@ -31,26 +32,57 @@ function debounce(func: (...args: any[]) => void, delay: number) {
 function SearchAndFilterControls() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const [isGenerating, setIsGenerating] = useState(false);
+    const { toast } = useToast();
 
     const sortOption = searchParams.get('sort') || 'newest';
     const languageFilter = searchParams.get('lang') || 'all';
-    const searchTerm = searchParams.get('q') || '';
+    const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
 
     const handleFilterChange = (type: 'sort' | 'lang' | 'q', value: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (!value || value === 'all' || (type === 'q' && value.length < 2)) {
+        if (!value || value === 'all' || (type === 'q' && value.length < 2 && value.length !== 0)) {
             params.delete(type);
         } else {
             params.set(type, value);
         }
-        // Using window.history.pushState to avoid a full page reload,
-        // letting the parent component handle the data refetch.
         window.history.pushState(null, '', `?${params.toString()}`);
-        // Dispatch a custom event that the parent component can listen to.
         window.dispatchEvent(new Event('filterChange'));
     };
 
+    const handleAiSearch = async () => {        
+        if (!searchTerm || searchTerm.length < 5) {
+             toast({
+                variant: 'destructive',
+                title: 'AI Search Requires More Detail',
+                description: 'Please enter a more descriptive search query (at least 5 characters).',
+            });
+            return;
+        }
+        setIsGenerating(true);
+        try {
+            const result = await generateSearchQuery({ query: searchTerm });
+            setSearchTerm(result.searchQuery);
+            handleFilterChange('q', result.searchQuery);
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'AI Search Failed',
+                description: 'There was a problem generating the search query.',
+            });
+        } finally {
+            setIsGenerating(false);
+        }
+    }
+
     const debouncedSearch = useCallback(debounce( (value: string) => handleFilterChange('q', value), 300), [searchParams.toString()]);
+    
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSearchTerm(value);
+        debouncedSearch(value);
+    }
     
     return (
         <>
@@ -59,10 +91,20 @@ function SearchAndFilterControls() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search snippets by name, content, or tag..."
-                        className="pl-9 w-full bg-muted/50 focus:bg-background"
-                        defaultValue={searchTerm}
-                        onChange={(e) => debouncedSearch(e.target.value)}
+                        className="pl-9 pr-24 w-full bg-muted/50 focus:bg-background"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
                     />
+                    <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
+                        onClick={handleAiSearch}
+                        disabled={isGenerating}
+                        >
+                        {isGenerating ? <Loader2 className="h-4 w-4 animate-spin"/> : <Sparkles className="h-4 w-4" />}
+                        <span className="ml-2 hidden sm:inline">AI Search</span>
+                    </Button>
                 </div>
             </div>
             <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
