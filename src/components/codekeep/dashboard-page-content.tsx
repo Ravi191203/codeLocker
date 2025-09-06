@@ -1,13 +1,11 @@
 
 "use client"
 
-import { useEffect, useState, useTransition, Suspense } from 'react';
+import { useEffect, useState, useTransition, Suspense, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getFilteredSnippets } from '@/app/actions';
 import { SnippetList } from '@/components/codekeep/snippet-list';
 import { languages, type Snippet } from '@/lib/data';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSnippetForm } from './add-snippet-form';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +13,17 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
+
+// Debounce function
+function debounce(func: (...args: any[]) => void, delay: number) {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+}
 
 
 function SearchAndFilterControls() {
@@ -24,26 +33,23 @@ function SearchAndFilterControls() {
     const sortOption = searchParams.get('sort') || 'newest';
     const languageFilter = searchParams.get('lang') || 'all';
     const searchTerm = searchParams.get('q') || '';
-    
-    // Debounce handler
-    let timeoutId: NodeJS.Timeout;
-    const handleDebouncedSearch = (value: string) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            handleFilterChange('q', value);
-        }, 300); // 300ms debounce
-    }
 
     const handleFilterChange = (type: 'sort' | 'lang' | 'q', value: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (!value || value === 'all') {
+        if (!value || value === 'all' || (type === 'q' && value.length < 2)) {
             params.delete(type);
         } else {
             params.set(type, value);
         }
-        router.push(`/?${params.toString()}`);
-    }
+        // Using window.history.pushState to avoid a full page reload,
+        // letting the parent component handle the data refetch.
+        window.history.pushState(null, '', `?${params.toString()}`);
+        // Dispatch a custom event that the parent component can listen to.
+        window.dispatchEvent(new Event('filterChange'));
+    };
 
+    const debouncedSearch = useCallback(debounce( (value: string) => handleFilterChange('q', value), 300), [searchParams.toString()]);
+    
     return (
         <>
             <div className="w-full flex-1">
@@ -53,7 +59,7 @@ function SearchAndFilterControls() {
                         placeholder="Search snippets by name, content, or tag..."
                         className="pl-9 w-full bg-muted/50 focus:bg-background"
                         defaultValue={searchTerm}
-                        onChange={(e) => handleDebouncedSearch(e.target.value)}
+                        onChange={(e) => debouncedSearch(e.target.value)}
                     />
                 </div>
             </div>
@@ -86,28 +92,49 @@ function SearchAndFilterControls() {
 }
 
 
-export default function DashboardPageContent({ initialSnippets }: { initialSnippets: Snippet[] }) {
-  const [snippets, setSnippets] = useState<Snippet[]>(initialSnippets);
+export default function DashboardPageContent() {
+  const [snippets, setSnippets] = useState<Snippet[]>([]);
   const [isPending, startTransition] = useTransition();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   
   const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  useEffect(() => {
-    setSnippets(initialSnippets);
-  }, [initialSnippets]);
-
-  const refreshSnippets = () => {
+  const refreshSnippets = useCallback(() => {
     startTransition(async () => {
-        const dbSnippets = await getFilteredSnippets({
-            query: searchParams.get('q') || '',
-            language: searchParams.get('lang') || 'all',
-            sort: searchParams.get('sort') || 'newest'
-        });
+      try {
+        const params = new URLSearchParams(searchParams.toString());
+        const response = await fetch(`/api/v1/snippets/list?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to fetch snippets');
+        const dbSnippets = await response.json();
         setSnippets(dbSnippets);
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: 'destructive',
+          title: 'Error fetching snippets',
+          description: 'Could not retrieve snippet data.',
+        });
+      }
     });
-  }
+  }, [searchParams, toast]);
+
+  useEffect(() => {
+    refreshSnippets();
+
+    const handleFilterChange = () => refreshSnippets();
+    
+    window.addEventListener('filterChange', handleFilterChange);
+    
+    // Listen for popstate events (back/forward browser buttons)
+    window.addEventListener('popstate', handleFilterChange);
+
+    return () => {
+      window.removeEventListener('filterChange', handleFilterChange);
+      window.removeEventListener('popstate', handleFilterChange);
+    };
+  }, [refreshSnippets]);
+
 
   const onSnippetAdded = () => {
     setAddDialogOpen(false);

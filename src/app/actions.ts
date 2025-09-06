@@ -95,47 +95,6 @@ export async function getSnippets() {
   return JSON.parse(JSON.stringify(snippets));
 }
 
-export async function getFilteredSnippets({
-  query,
-  language,
-  sort,
-}: {
-  query?: string;
-  language?: string;
-  sort?: string;
-}) {
-  await dbConnect();
-
-  const filter: any = {};
-  if (language && language !== 'all') {
-    filter.language = language;
-  }
-  if (query) {
-    filter.$or = [
-      { name: { $regex: query, $options: 'i' } },
-      { description: { $regex: query, $options: 'i' } },
-      { code: { $regex: query, $options: 'i' } },
-      { tags: { $regex: query, $options: 'i' } },
-    ];
-  }
-
-  let sortOption: any = { createdAt: -1 };
-  switch (sort) {
-    case 'oldest':
-      sortOption = { createdAt: 1 };
-      break;
-    case 'a-z':
-      sortOption = { name: 1 };
-      break;
-    case 'z-a':
-      sortOption = { name: -1 };
-      break;
-  }
-
-  const snippets = await Snippet.find(filter).sort(sortOption);
-  return JSON.parse(JSON.stringify(snippets));
-}
-
 
 export async function addSnippet(data: {
   name: string;
