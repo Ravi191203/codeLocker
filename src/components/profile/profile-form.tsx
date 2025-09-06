@@ -16,7 +16,7 @@ import { Card, CardContent, CardFooter } from '../ui/card';
 import { Label } from '../ui/label';
 
 const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.'),
+  name: z.string().min(2, 'Name must be at least 2 characters.').or(z.literal('')),
   profilePhotoUrl: z.string().url('Please enter a valid URL.').or(z.literal('')),
 });
 
@@ -63,7 +63,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
                 <Label>Profile Picture</Label>
                  <Avatar className="h-24 w-24">
                     <AvatarImage src={profilePhotoUrlValue} alt={user.name} />
-                    <AvatarFallback>{user.name?.[0].toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{(user.name || user.email)?.[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
             </div>
             <div className='flex-1 space-y-6'>
