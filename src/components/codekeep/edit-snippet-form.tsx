@@ -29,9 +29,9 @@ import { useToast } from '@/hooks/use-toast';
 import { DialogFooter } from '../ui/dialog';
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  description: z.string().min(10, "Description must be at least 10 characters."),
-  code: z.string().min(10, "Code must be at least 10 characters."),
+  name: z.string(),
+  description: z.string(),
+  code: z.string(),
   language: z.string(),
   tags: z.string(),
 });
