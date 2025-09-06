@@ -27,7 +27,8 @@ import { addSnippet } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import { DialogFooter } from '../ui/dialog';
 import { generateSnippetDetails } from '@/ai/flows/generate-snippet-details';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Globe, Lock } from 'lucide-react';
+import { Switch } from '../ui/switch';
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -35,6 +36,7 @@ const formSchema = z.object({
   code: z.string().min(10, "Code must be at least 10 characters."),
   language: z.string(),
   tags: z.string(),
+  isPublic: z.boolean().default(false),
 });
 
 type AddSnippetFormProps = {
@@ -65,6 +67,7 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
       code: "",
       language: languages[0],
       tags: "",
+      isPublic: false,
     },
   });
 
@@ -212,6 +215,29 @@ export function AddSnippetForm({ onSuccess }: AddSnippetFormProps) {
               )}
               />
           </div>
+            <FormField
+              control={form.control}
+              name="isPublic"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base flex items-center gap-2">
+                      {field.value ? <Globe /> : <Lock />}
+                      {field.value ? 'Public Snippet' : 'Private Snippet'}
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      {field.value ? 'Anyone with the link will be able to view.' : 'Only you will be able to see this snippet.'}
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
         </div>
         <DialogFooter className="border-t pt-4 bg-muted/50 p-6">
             <Button type="submit" disabled={isPending || isGenerating} className="bg-primary text-primary-foreground hover:bg-primary/90">

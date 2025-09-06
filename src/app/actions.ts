@@ -133,10 +133,16 @@ export async function addSnippet(data: {
   code: string;
   language: string;
   tags: string;
+  isPublic: boolean;
 }) {
   await dbConnect();
   const tagsArray = data.tags.split(',').map(tag => tag.trim()).filter(Boolean);
-  const snippetData = { ...data, tags: tagsArray };
+  
+  const snippetData = { 
+      ...data, 
+      tags: tagsArray,
+      shareId: data.isPublic ? nanoid() : null,
+  };
 
   const newSnippet = new Snippet(snippetData);
   await newSnippet.save();
