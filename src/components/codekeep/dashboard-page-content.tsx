@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { AddSnippetForm } from './add-snippet-form';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Search, Globe, Lock, Plus, ShieldCheck, MailQuestion } from 'lucide-react';
+import { Search, Globe, Lock, Plus, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
@@ -168,12 +168,6 @@ export default function DashboardPageContent() {
   const privateSnippets = snippets.filter(s => !s.isPublic);
   const publicSnippets = snippets.filter(s => s.isPublic);
 
-  const mailtoHref = `mailto:mcastuf007@gmail.com?subject=${encodeURIComponent(
-    'Request for CodeKeep Secret Key'
-  )}&body=${encodeURIComponent(
-    'Hello,\\n\\nI would like to request the secret key to access my private snippets on CodeKeep.\\n\\nThank you!'
-  )}`;
-
   return (
     <>
       <div className="p-4 md:p-8">
@@ -214,11 +208,8 @@ export default function DashboardPageContent() {
                                     <ShieldCheck className="h-6 w-6" />
                                     Secret Box
                                 </CardTitle>
-                                <CardDescription className="flex items-center justify-center gap-2">
+                                <CardDescription>
                                     Enter the secret key to access your private snippets.
-                                    <a href={mailtoHref} className="text-muted-foreground hover:text-primary transition-colors">
-                                        <MailQuestion className="h-4 w-4" />
-                                    </a>
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
