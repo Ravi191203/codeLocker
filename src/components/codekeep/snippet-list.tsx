@@ -5,7 +5,7 @@
 import type { Snippet } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '../ui/badge';
-import { FileCode, Loader2, MoreVertical, Pencil, Trash2, Copy, Check } from 'lucide-react';
+import { FileCode, Loader2, MoreVertical, Pencil, Trash2, Copy, Check, Globe, Lock } from 'lucide-react';
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -42,9 +42,12 @@ function SnippetCard({ snippet }: {
         className="flex flex-col cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 w-full"
         >
         <CardHeader className="flex-row items-start justify-between gap-4 p-4">
-            <div className="flex-1">
-            <CardTitle className="text-base font-semibold">{snippet.name}</CardTitle>
-            <CardDescription className="text-xs mt-1 line-clamp-2">{snippet.description}</CardDescription>
+            <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                    {snippet.isPublic ? <Globe className="h-4 w-4 text-muted-foreground" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
+                    <CardTitle className="text-base font-semibold leading-none">{snippet.name}</CardTitle>
+                </div>
+                <CardDescription className="text-xs line-clamp-2">{snippet.description}</CardDescription>
             </div>
         </CardHeader>
         <CardContent className="p-4 pt-0 flex-grow">
